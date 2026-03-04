@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Imagen Simple</title>
+    <style>
+        .test-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success { border: 3px solid green !important; }
+        .error { border: 3px solid red !important; }
+    </style>
+</head>
+<body>
+    <h2>Prueba Simple de Imagen</h2>
+    <p>El borde se pondrá verde si la imagen carga correctamente, rojo si falla.</p>
+    <hr>
+
+    <div class="test-box">
+        <h3>Opción 1: Ruta relativa simple</h3>
+        <code>uploads/repositorio/1220593/foto_1761141888_68f8e4806c4bf.jpg</code><br><br>
+        <img src="uploads/repositorio/1220593/foto_1761141888_68f8e4806c4bf.jpg"
+             style="max-width: 300px;"
+             onload="this.parentElement.className='test-box success'"
+             onerror="this.parentElement.className='test-box error'; this.alt='ERROR'">
+    </div>
+
+    <div class="test-box">
+        <h3>Opción 2: Con barra inicial (absoluta desde dominio)</h3>
+        <code>/vidaEstudiantil/uploads/repositorio/1220593/foto_1761141888_68f8e4806c4bf.jpg</code><br><br>
+        <img src="/vidaEstudiantil/uploads/repositorio/1220593/foto_1761141888_68f8e4806c4bf.jpg"
+             style="max-width: 300px;"
+             onload="this.parentElement.className='test-box success'"
+             onerror="this.parentElement.className='test-box error'; this.alt='ERROR'">
+    </div>
+
+    <div class="test-box">
+        <h3>Opción 3: Desde pages/repositorio (relativa)</h3>
+        <code>../../uploads/repositorio/1220593/foto_1761141888_68f8e4806c4bf.jpg</code><br><br>
+        <img src="../../uploads/repositorio/1220593/foto_1761141888_68f8e4806c4bf.jpg"
+             style="max-width: 300px;"
+             onload="this.parentElement.className='test-box success'"
+             onerror="this.parentElement.className='test-box error'; this.alt='ERROR'">
+    </div>
+
+    <hr>
+    <p><strong>Prueba directa:</strong> <a href="http://localhost/vidaEstudiantil/uploads/repositorio/1220593/foto_1761141888_68f8e4806c4bf.jpg" target="_blank">Abrir imagen directamente</a></p>
+</body>
+</html>

@@ -1,0 +1,22 @@
+RewriteEngine On
+RewriteBase /cpanel/cpanel_Hithan-main/pages/clubes/
+
+# Si el archivo existe, mostrarlo
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Si el directorio existe, mostrarlo
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Redirigir /crear a crear.php
+RewriteRule ^crear/?$ crear.php [L]
+
+# Redirigir /editar a editar.php
+RewriteRule ^editar/?$ editar.php [L,QSA]
+
+# Redirigir /ver a ver.php
+RewriteRule ^ver/?$ ver.php [L,QSA]
+
+# Redirigir raíz a index.php
+RewriteRule ^$ index.php [L]

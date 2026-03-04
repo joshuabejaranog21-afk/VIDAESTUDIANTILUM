@@ -1,0 +1,4 @@
+# CPanel
+### Administrador de sitios web
+
+OK, ya me está mandando la parte de crear simplemente no tengo pues el formulario para llenar los datos, mira la verdad no sí, estamos haciendo bien o cómo crees tú mira la verdad para la parte de clubes, nada más va a ser como informativo o como poner la información, tal vez una imagen y todo esto, yo sé que que eso va en el frente, pero crees que se debería manejar algo en el BAC, o sea me refiero a que literalmente sí, sea una tabla que crees dos clubes y Después en la parte de del Front, pues se llamen a esos o sea porque al final no se ve nada, o sea no sé cómo sería el manejo porque al final solamente se pueden hacer pues todo desde el front no o tú qué crees crees que si es necesario que estén en una base de datos o sea el nombre y todo esto porque que si te das cuenta esta tabla, pues simplemente tendré información o o tú qué dices compañero

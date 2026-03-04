@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Permitir acceso directo a archivos PHP
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule . - [L]
+
+# Permitir acceso a APIs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^assets/API/(.*)$ assets/API/$1 [L,QSA]

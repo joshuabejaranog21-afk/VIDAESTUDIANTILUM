@@ -1,0 +1,27 @@
+# Archivos de configuración con credenciales
+assets/API/db.php
+
+# Archivos temporales y de prueba
+test_*.php
+debug_*.php
+check_*.php
+temp_*.php
+
+# Uploads de usuarios
+uploads/**
+!uploads/.htaccess
+!uploads/*/.htaccess
+
+# Archivos del sistema
+nul
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+
+# Logs
+*.log
+error_log

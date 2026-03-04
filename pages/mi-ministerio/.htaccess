@@ -1,0 +1,15 @@
+RewriteEngine On
+
+# Permitir acceso directo a APIs (no redirigir)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule \.(php)$ - [L]
+
+# Remover .php de las URLs (solo para páginas, no APIs)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_URI} !.*\.(php|js|css|png|jpg|gif)$
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
+
+# NO redirigir APIs de .php a sin .php
+# RewriteCond %{THE_REQUEST} /([^.]+)\.php [NC]
+# RewriteRule ^ /%1? [NC,L,R=301]

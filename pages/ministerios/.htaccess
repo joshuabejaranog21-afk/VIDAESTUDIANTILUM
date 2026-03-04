@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /cpanel/cpanel_Hithan-main/pages/ministerios/
+    
+    # Redirigir URL sin .php a .php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([a-zA-Z0-9_-]+)/?$ $1.php [QSA]
+    RewriteRule ^([a-zA-Z0-9_-]+)/\?(.*)$ $1.php?$2 [QSA]
+</IfModule>

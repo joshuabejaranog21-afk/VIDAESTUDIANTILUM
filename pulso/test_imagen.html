@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba de Carga de Imagen</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        img { border: 2px solid #ccc; margin: 10px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Prueba de Carga de Imagen</h1>
+
+    <h2>Método 1: Ruta relativa desde pulso/</h2>
+    <img src="../uploads/pulso/fotos/colaborador_68e9195baf773_1760106843.jpg"
+         width="200"
+         onload="document.getElementById('test1').className='success'; document.getElementById('test1').textContent='✅ Cargó correctamente'"
+         onerror="document.getElementById('test1').className='error'; document.getElementById('test1').textContent='❌ Error al cargar'">
+    <p id="test1">Cargando...</p>
+
+    <h2>Método 2: Ruta absoluta desde raíz</h2>
+    <img src="/vidaEstudiantil/uploads/pulso/fotos/colaborador_68e9195baf773_1760106843.jpg"
+         width="200"
+         onload="document.getElementById('test2').className='success'; document.getElementById('test2').textContent='✅ Cargó correctamente'"
+         onerror="document.getElementById('test2').className='error'; document.getElementById('test2').textContent='❌ Error al cargar'">
+    <p id="test2">Cargando...</p>
+
+    <h2>Método 3: URL completa</h2>
+    <img src="http://localhost/vidaEstudiantil/uploads/pulso/fotos/colaborador_68e9195baf773_1760106843.jpg"
+         width="200"
+         onload="document.getElementById('test3').className='success'; document.getElementById('test3').textContent='✅ Cargó correctamente'"
+         onerror="document.getElementById('test3').className='error'; document.getElementById('test3').textContent='❌ Error al cargar'">
+    <p id="test3">Cargando...</p>
+
+    <h2>Método 4: Imagen por defecto SVG</h2>
+    <img src="default-avatar.svg"
+         width="200"
+         onload="document.getElementById('test4').className='success'; document.getElementById('test4').textContent='✅ Cargó correctamente'"
+         onerror="document.getElementById('test4').className='error'; document.getElementById('test4').textContent='❌ Error al cargar'">
+    <p id="test4">Cargando...</p>
+
+    <hr>
+    <h3>Inspeccionar el archivo</h3>
+    <p>Intenta acceder directamente a:</p>
+    <ul>
+        <li><a href="../uploads/pulso/fotos/colaborador_68e9195baf773_1760106843.jpg" target="_blank">
+            ../uploads/pulso/fotos/colaborador_68e9195baf773_1760106843.jpg
+        </a></li>
+        <li><a href="http://localhost/vidaEstudiantil/uploads/pulso/fotos/colaborador_68e9195baf773_1760106843.jpg" target="_blank">
+            http://localhost/vidaEstudiantil/uploads/pulso/fotos/colaborador_68e9195baf773_1760106843.jpg
+        </a></li>
+    </ul>
+
+    <script>
+        console.log('Archivo cargado. Verifica la consola para errores de imagen.');
+    </script>
+</body>
+</html>

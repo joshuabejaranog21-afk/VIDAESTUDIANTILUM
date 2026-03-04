@@ -1,0 +1,64 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /cpanel/cpanel_Hithan-main/
+
+# ==============================
+# ARCHIVOS Y DIRECTORIOS REALES
+# ==============================
+# No reescribir si el archivo o directorio existe físicamente
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# ==============================
+# EXCLUIR CARPETAS ESPECIALES
+# ==============================
+# No tocar assets, uploads, configuracion
+RewriteRule ^(assets|uploads|configuracion)/ - [L]
+
+# ==============================
+# ELIMINAR EXTENSIÓN .PHP
+# ==============================
+# Si la URL termina en .php, redirigir a la versión sin extensión
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s([^.]+)\.php [NC]
+RewriteRule ^ %1 [R=301,L]
+
+# ==============================
+# PULSO - MANEJO ESPECIAL
+# ==============================
+# Pulso tiene archivos tanto en /pulso/ como en /pages/pulso/
+# Intentar primero en /pulso/, luego en /pages/pulso/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/cpanel/cpanel_Hithan-main/pulso/$1.php -f
+RewriteRule ^pulso/(.+)$ pulso/$1.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/cpanel/cpanel_Hithan-main/pages/pulso/$1.php -f
+RewriteRule ^pulso/(.+)$ pages/pulso/$1.php [L]
+
+# ==============================
+# ARCHIVOS RAÍZ
+# ==============================
+RewriteRule ^/?$ index.php [L]
+RewriteRule ^login/?$ login.php [L]
+RewriteRule ^home/?$ home.php [L]
+RewriteRule ^mi-foto/?$ mi-foto.php [L]
+RewriteRule ^federacion/?$ federacion.php [L]
+
+# ==============================
+# REDIRECCIÓN GENERAL A /pages/
+# ==============================
+# Primero intentar agregar .php si el archivo existe
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/cpanel/cpanel_Hithan-main/pages/$1.php -f
+RewriteRule ^(.+)$ pages/$1.php [L]
+
+# Si no existe con .php, intentar como directorio
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ pages/$1 [L]
+
+</IfModule>

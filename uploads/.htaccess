@@ -1,0 +1,7 @@
+# Desactivar completamente mod_rewrite en esta carpeta
+RewriteEngine Off
+
+# Permitir acceso a archivos de imagen y PDF (Apache 2.4)
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|pdf)$">
+    Require all granted
+</FilesMatch>

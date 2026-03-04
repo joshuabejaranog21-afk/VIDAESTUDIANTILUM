@@ -1,0 +1,600 @@
+<?php
+include('../../assets/php/template.php');
+$temp = new Template('Galería de Ligas');
+$db = new Conexion();
+
+// Validar sesión
+if (!$temp->validate_session()) {
+    header('Location: ' . $temp->siteURL . 'login/');
+    exit();
+}
+
+// Validar permiso
+if (!$temp->tiene_permiso('ligas', 'ver')) {
+    echo "No tienes permiso para acceder a este módulo";
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html lang="es" data-footer="true">
+
+<head>
+    <?php $temp->head() ?>
+    <style>
+        .galeria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .galeria-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .galeria-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .galeria-imagen {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+
+        .galeria-info {
+            padding: 12px;
+        }
+
+        .galeria-titulo {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .galeria-url {
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+
+        .galeria-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .galeria-actions button {
+            flex: 1;
+            padding: 6px;
+            font-size: 12px;
+        }
+
+        .galeria-selector {
+            margin-bottom: 20px;
+        }
+
+        .preview-principal {
+            max-width: 300px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-responsable {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ddd;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root">
+        <?php $temp->nav() ?>
+        <?php $temp->sidebar() ?>
+        <main>
+            <div class="container">
+                <!-- Title Start -->
+                <div class="page-title-container mb-5">
+                    <div class="row">
+                        <div class="col-12 col-md-8">
+                            <h1 class="mb-0 pb-0 display-4">Galería de Ligas</h1>
+                            <p class="text-muted">Visualiza y gestiona las imágenes de cada liga</p>
+                        </div>
+                        <div class="col-12 col-md-4 d-flex align-items-end justify-content-end">
+                            <a href="<?php echo $temp->siteURL ?>pages/deportes/" class="btn btn-outline-secondary">
+                                <i data-acorn-icon="arrow-left"></i>
+                                Volver a Ligas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Title End -->
+
+                <!-- Selector de Liga -->
+                <div class="row mb-4">
+                    <div class="col-12 col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <label class="form-label">Selecciona una Liga</label>
+                                <select id="ligaSelector" class="form-select">
+                                    <option value="">Cargando ligas...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de la Liga -->
+                <div id="ligaInfo" style="display:none;">
+                    <div class="row mb-4">
+                        <div class="col-12 col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Información General</h5>
+                                    <hr>
+                                    <p><strong>Nombre:</strong> <span id="infoNombre"></span></p>
+                                    <p><strong>Deporte:</strong> <span id="infoDeporte"></span></p>
+                                    <p><strong>Estado:</strong> <span id="infoEstado"></span></p>
+                                    <p><strong>Responsable:</strong> <span id="infoResponsable"></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Contacto</h5>
+                                    <hr>
+                                    <p><strong>Email:</strong> <span id="infoEmail"></span></p>
+                                    <p><strong>Teléfono:</strong> <span id="infoTelefono"></span></p>
+                                    <p><strong>Contacto:</strong> <span id="infoContacto"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Imágenes Principales -->
+                    <div class="row mb-4">
+                        <div class="col-12 col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Imagen Principal (Banner)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="imagenPrincipalContainer" style="text-align: center;">
+                                        <p class="text-muted">Sin imagen</p>
+                                    </div>
+                                    <div class="d-flex gap-2 justify-content-center mt-3">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cambiarImagenPrincipal()">
+                                            <i data-acorn-icon="upload"></i> Cambiar
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarImagenPrincipal()">
+                                            <i data-acorn-icon="bin"></i> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Foto del Responsable</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="fotoResponsableContainer" style="text-align: center;">
+                                        <p class="text-muted">Sin foto</p>
+                                    </div>
+                                    <div class="d-flex gap-2 justify-content-center mt-3">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cambiarFotoResponsable()">
+                                            <i data-acorn-icon="upload"></i> Cambiar
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarFotoResponsable()">
+                                            <i data-acorn-icon="bin"></i> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Galería -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Galería de Imágenes</h5>
+                                    <button type="button" class="btn btn-sm btn-primary" id="btnAgregarGaleriaAdmin">
+                                        <i data-acorn-icon="plus"></i> Agregar
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="galeriaContainer" class="galeria-grid">
+                                        <!-- Se llenará dinámicamente -->
+                                    </div>
+                                    <div id="galeriaVacia" class="text-center text-muted py-5">
+                                        <p>No hay imágenes en la galería</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <?php $temp->footer() ?>
+    </div>
+
+    <!-- Input file oculto -->
+    <input type="file" id="fileInput" style="display:none;" accept="image/*">
+
+    <!-- Modal para ver imagen en grande -->
+    <div class="modal fade" id="modalImagen" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ver Imagen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImagenSrc" src="" style="max-width: 100%; max-height: 600px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <?php $temp->modalSettings() ?>
+    <?php $temp->modalSearch() ?>
+
+    <?php $temp->scripts() ?>
+    <script>
+        const siteURL = '<?php echo $temp->siteURL ?>';
+        let ligaActual = null;
+        let galeriaActual = [];
+        const modalImagen = new bootstrap.Modal(document.getElementById('modalImagen'));
+
+        // Cargar ligas
+        function cargarLigas() {
+            fetch(siteURL + 'assets/API/ligas/listar.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success == 1) {
+                        const select = document.getElementById('ligaSelector');
+                        select.innerHTML = '<option value="">Selecciona una liga...</option>';
+                        data.data.forEach(liga => {
+                            const option = document.createElement('option');
+                            option.value = liga.ID;
+                            option.textContent = `${liga.NOMBRE} (${liga.DEPORTE_NOMBRE})`;
+                            select.appendChild(option);
+                        });
+                    }
+                });
+        }
+
+        // Cargar detalles de liga
+        document.getElementById('ligaSelector').addEventListener('change', function() {
+            if (!this.value) {
+                document.getElementById('ligaInfo').style.display = 'none';
+                return;
+            }
+
+            fetch(siteURL + 'assets/API/ligas/obtener.php?id=' + this.value)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success == 1) {
+                        ligaActual = data.data;
+                        galeriaActual = data.data.GALERIA_ARRAY || [];
+                        mostrarDetallesLiga();
+                        document.getElementById('ligaInfo').style.display = 'block';
+                    }
+                });
+        });
+
+        // Mostrar detalles
+        function mostrarDetallesLiga() {
+            const liga = ligaActual;
+
+            document.getElementById('infoNombre').textContent = liga.NOMBRE;
+            document.getElementById('infoDeporte').textContent = liga.DEPORTE_NOMBRE || '-';
+            document.getElementById('infoEstado').innerHTML = `<span class="badge bg-${getEstadoColor(liga.ESTADO)}">${getEstadoText(liga.ESTADO)}</span>`;
+            document.getElementById('infoResponsable').textContent = liga.RESPONSABLE_NOMBRE || '-';
+            document.getElementById('infoEmail').textContent = liga.EMAIL || '-';
+            document.getElementById('infoTelefono').textContent = liga.TELEFONO || '-';
+            document.getElementById('infoContacto').textContent = liga.RESPONSABLE_CONTACTO || '-';
+
+            // Imagen principal
+            if (liga.IMAGEN_URL) {
+                document.getElementById('imagenPrincipalContainer').innerHTML = `
+                    <img src="${liga.IMAGEN_URL}" class="preview-principal" onclick="verImagenGrande('${liga.IMAGEN_URL}')" style="cursor:pointer;">
+                `;
+            } else {
+                document.getElementById('imagenPrincipalContainer').innerHTML = '<p class="text-muted">Sin imagen</p>';
+            }
+
+            // Foto responsable
+            if (liga.FOTO_RESPONSABLE) {
+                document.getElementById('fotoResponsableContainer').innerHTML = `
+                    <img src="${liga.FOTO_RESPONSABLE}" class="preview-responsable" onclick="verImagenGrande('${liga.FOTO_RESPONSABLE}')" style="cursor:pointer;">
+                `;
+            } else {
+                document.getElementById('fotoResponsableContainer').innerHTML = '<p class="text-muted">Sin foto</p>';
+            }
+
+            // Galería
+            mostrarGaleria();
+        }
+
+        // Mostrar galería
+        function mostrarGaleria() {
+            const container = document.getElementById('galeriaContainer');
+            const vacia = document.getElementById('galeriaVacia');
+
+            if (galeriaActual.length === 0) {
+                container.innerHTML = '';
+                vacia.style.display = 'block';
+                return;
+            }
+
+            vacia.style.display = 'none';
+            container.innerHTML = '';
+
+            galeriaActual.forEach((url, index) => {
+                const card = document.createElement('div');
+                card.className = 'galeria-card';
+                card.innerHTML = `
+                    <img src="${url}" class="galeria-imagen" onclick="verImagenGrande('${url}')" style="cursor:pointer;">
+                    <div class="galeria-info">
+                        <div class="galeria-url">${url}</div>
+                        <div class="galeria-actions">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="eliminarDelGaleria(${index})">
+                                <i data-acorn-icon="bin"></i> Eliminar
+                            </button>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="copiarURL('${url}')">
+                                <i data-acorn-icon="copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            if (typeof acorn !== 'undefined') {
+                acorn.icons();
+            }
+        }
+
+        // Ver imagen en grande
+        function verImagenGrande(url) {
+            document.getElementById('modalImagenSrc').src = url;
+            modalImagen.show();
+        }
+
+        // Copiar URL
+        function copiarURL(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                jQuery.notify({
+                    title: 'Éxito',
+                    message: 'URL copiada al portapapeles'
+                }, { type: 'success' });
+            });
+        }
+
+        // Eliminar de galería
+        function eliminarDelGaleria(index) {
+            if (!confirm('¿Eliminar esta imagen?')) return;
+
+            galeriaActual.splice(index, 1);
+            
+            // Actualizar en BD
+            const formData = new FormData();
+            formData.append('id', ligaActual.ID);
+            formData.append('galeria', JSON.stringify(galeriaActual));
+
+            fetch(siteURL + 'assets/API/ligas/actualizar.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success == 1) {
+                    mostrarGaleria();
+                    jQuery.notify({
+                        title: 'Éxito',
+                        message: 'Imagen eliminada'
+                    }, { type: 'success' });
+                }
+            });
+        }
+
+        // Agregar a galería
+        document.getElementById('btnAgregarGaleriaAdmin').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!ligaActual) {
+                jQuery.notify({
+                    title: 'Error',
+                    message: 'Selecciona una liga primero'
+                }, { type: 'warning' });
+                return;
+            }
+
+            const fileInput = document.getElementById('fileInput');
+            fileInput.onchange = function() {
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('archivo', fileInput.files[0]);
+                    formData.append('tipo', 'galeria');
+
+                    fetch(siteURL + 'assets/API/upload.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success == 1) {
+                            // Usar URL completa devuelta por el servidor
+                            const imagenURL = data.url || data.url_relativa;
+                            galeriaActual.push(imagenURL);
+                            
+                            // Guardar en BD
+                            const updateFormData = new FormData();
+                            updateFormData.append('id', ligaActual.ID);
+                            updateFormData.append('galeria', JSON.stringify(galeriaActual));
+
+                            fetch(siteURL + 'assets/API/ligas/actualizar.php', {
+                                method: 'POST',
+                                body: updateFormData
+                            })
+                            .then(response => response.json())
+                            .then(updateData => {
+                                if (updateData.success == 1) {
+                                    mostrarGaleria();
+                                    jQuery.notify({
+                                        title: 'Éxito',
+                                        message: 'Imagen agregada a la galería'
+                                    }, { type: 'success' });
+                                }
+                            });
+                        }
+                    });
+                }
+            };
+            fileInput.click();
+        });
+
+        // Cambiar/eliminar Imagen Principal (Banner)
+        function cambiarImagenPrincipal() {
+            if (!ligaActual) return;
+            const fileInput = document.getElementById('fileInput');
+            fileInput.onchange = function() {
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('archivo', fileInput.files[0]);
+                    formData.append('tipo', 'imagen');
+                    fetch(siteURL + 'assets/API/upload.php', { method: 'POST', body: formData })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success == 1) {
+                                const imagenURL = data.url || data.url_relativa;
+                                const update = new FormData();
+                                update.append('id', ligaActual.ID);
+                                update.append('imagen_url', imagenURL);
+                                fetch(siteURL + 'assets/API/ligas/actualizar.php', { method: 'POST', body: update })
+                                    .then(r => r.json())
+                                    .then(upd => {
+                                        if (upd.success == 1) {
+                                            ligaActual.IMAGEN_URL = imagenURL;
+                                            mostrarDetallesLiga();
+                                            jQuery.notify({ title: 'Éxito', message: 'Banner actualizado' }, { type: 'success' });
+                                        }
+                                    });
+                            }
+                        });
+                }
+            };
+            fileInput.click();
+        }
+        function eliminarImagenPrincipal() {
+            if (!ligaActual) return;
+            if (!confirm('¿Eliminar banner?')) return;
+            const update = new FormData();
+            update.append('id', ligaActual.ID);
+            update.append('imagen_url', '');
+            fetch(siteURL + 'assets/API/ligas/actualizar.php', { method: 'POST', body: update })
+                .then(r => r.json())
+                .then(upd => {
+                    if (upd.success == 1) {
+                        ligaActual.IMAGEN_URL = '';
+                        mostrarDetallesLiga();
+                        jQuery.notify({ title: 'Éxito', message: 'Banner eliminado' }, { type: 'success' });
+                    }
+                });
+        }
+
+        // Cambiar/eliminar Foto del Responsable
+        function cambiarFotoResponsable() {
+            if (!ligaActual) return;
+            const fileInput = document.getElementById('fileInput');
+            fileInput.onchange = function() {
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('archivo', fileInput.files[0]);
+                    formData.append('tipo', 'foto_responsable');
+                    fetch(siteURL + 'assets/API/upload.php', { method: 'POST', body: formData })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success == 1) {
+                                const imagenURL = data.url || data.url_relativa;
+                                const update = new FormData();
+                                update.append('id', ligaActual.ID);
+                                update.append('foto_responsable', imagenURL);
+                                fetch(siteURL + 'assets/API/ligas/actualizar.php', { method: 'POST', body: update })
+                                    .then(r => r.json())
+                                    .then(upd => {
+                                        if (upd.success == 1) {
+                                            ligaActual.FOTO_RESPONSABLE = imagenURL;
+                                            mostrarDetallesLiga();
+                                            jQuery.notify({ title: 'Éxito', message: 'Foto del responsable actualizada' }, { type: 'success' });
+                                        }
+                                    });
+                            }
+                        });
+                }
+            };
+            fileInput.click();
+        }
+        function eliminarFotoResponsable() {
+            if (!ligaActual) return;
+            if (!confirm('¿Eliminar foto del responsable?')) return;
+            const update = new FormData();
+            update.append('id', ligaActual.ID);
+            update.append('foto_responsable', '');
+            fetch(siteURL + 'assets/API/ligas/actualizar.php', { method: 'POST', body: update })
+                .then(r => r.json())
+                .then(upd => {
+                    if (upd.success == 1) {
+                        ligaActual.FOTO_RESPONSABLE = '';
+                        mostrarDetallesLiga();
+                        jQuery.notify({ title: 'Éxito', message: 'Foto del responsable eliminada' }, { type: 'success' });
+                    }
+                });
+        }
+
+        // Helpers
+        function getEstadoColor(estado) {
+            const colores = {
+                'EN_PREPARACION': 'warning',
+                'EN_CURSO': 'success',
+                'PAUSADO': 'info',
+                'CANCELADO': 'danger'
+            };
+            return colores[estado] || 'secondary';
+        }
+
+        function getEstadoText(estado) {
+            const textos = {
+                'EN_PREPARACION': '🔄 En Preparación',
+                'EN_CURSO': '▶️ En Curso',
+                'PAUSADO': '⏸️ Pausado',
+                'CANCELADO': '❌ Cancelado'
+            };
+            return textos[estado] || estado;
+        }
+
+        // Iniciar
+        document.addEventListener('DOMContentLoaded', cargarLigas);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,26 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+RewriteRule ^sesion/iniciar/$  /cpanel/assets/API/sesion/iniciar\.php [L]
+RewriteRule ^sesion/cerrar/$  /cpanel/assets/API/sesion/cerrar\.php [L]
+
+RewriteRule ^biblioteca/leer/$  /cpanel/assets/API/biblioteca/leer\.php [L]
+RewriteRule ^biblioteca/borrar/(.*)$  /cpanel/assets/API/biblioteca/borrar\.php?id=$1 [L]
+
+RewriteRule ^usuarios/leer/$  /cpanel/assets/API/usuarios/leer\.php [L]
+RewriteRule ^usuarios/actualizar/$  /cpanel/assets/API/usuarios/actualizar\.php [L]
+RewriteRule ^usuarios/activo/$  /cpanel/assets/API/usuarios/activo\.php [L]
+RewriteRule ^usuarios/password/$  /cpanel/assets/API/usuarios/password\.php [L]
+RewriteRule ^usuarios/cambiarPassword/$  /cpanel/assets/API/usuarios/cambiarPassword\.php [L]
+RewriteRule ^usuarios/crear/$  /cpanel/assets/API/usuarios/crear\.php [L]
+RewriteRule ^usuarios/borrar/(.*)$  /cpanel/assets/API/usuarios/borrar\.php?id=$1 [L]
+
+# API de ejemplo
+RewriteRule ^example/all/$  /cpanel/assets/API/example/leer\.php [L]
+RewriteRule ^example/leer/(.*)$  /cpanel/assets/API/example/especifico\.php?id=$1 [L]
+RewriteRule ^example/actualizar/$  /cpanel/assets/API/example/actualizar\.php [L]
+RewriteRule ^example/crear/$  /cpanel/assets/API/example/crear\.php [L]
+RewriteRule ^example/borrar/(.*)$  /cpanel/assets/API/example/borrar\.php?id=$1 [L]
+
+</IfModule>

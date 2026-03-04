@@ -1,0 +1,64 @@
+<?php
+include('../../assets/php/template.php');
+header('Content-Type: application/json');
+
+try {
+    $db = new Conexion();
+    
+    // Recibir ID por POST o GET
+    $id = 0;
+    if (isset($_POST['id'])) {
+        $id = (int)$_POST['id'];
+    } elseif (isset($_GET['id'])) {
+        $id = (int)$_GET['id'];
+    }
+    
+    if ($id <= 0) {
+        echo json_encode([
+            'success' => false, 
+            'message' => 'ID requerido',
+            'debug' => [
+                'id' => $id,
+                'post' => $_POST,
+                'get' => $_GET,
+                'method' => $_SERVER['REQUEST_METHOD']
+            ]
+        ]);
+        exit;
+    }
+    
+    // Consultar datos reales de la base de datos
+    $sql = "SELECT 
+                ID,
+                NOMBRE,
+                CARGO,
+                TELEFONO,
+                EMAIL,
+                ESTADO,
+                OBSERVACIONES
+            FROM VRE_DIRECTIVA_CLUBES 
+            WHERE ID = $id";
+    
+    $result = $db->query($sql);
+    
+    if ($result && $db->rows($result) > 0) {
+        $miembro = $db->recorrer($result);
+        echo json_encode([
+            'success' => true,
+            'data' => $miembro,
+            'message' => 'Datos obtenidos correctamente'
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Miembro no encontrado'
+        ]);
+    }
+    
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Error del servidor'
+    ]);
+}
+?>
