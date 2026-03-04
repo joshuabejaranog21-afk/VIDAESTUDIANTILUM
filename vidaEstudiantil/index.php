@@ -9,6 +9,14 @@ include('assets/php/header.php');
 include('../assets/API/db.php');
 $db = new Conexion();
 $hoy = date('Y-m-d');
+
+// Video hero
+$heroVideoPath = __DIR__ . '/assets/videos/hero.mp4';
+$heroVideoWebm = __DIR__ . '/assets/videos/hero.webm';
+$heroVideoURL  = null;
+$heroVideoType = null;
+if (file_exists($heroVideoPath)) { $heroVideoURL = $portalURL . 'assets/videos/hero.mp4'; $heroVideoType = 'video/mp4'; }
+elseif (file_exists($heroVideoWebm)) { $heroVideoURL = $portalURL . 'assets/videos/hero.webm'; $heroVideoType = 'video/webm'; }
 $anio = date('Y');
 
 // Banners
@@ -48,8 +56,17 @@ while ($r = $db->recorrer($sqlE)) $eventos[] = $r;
 
 <!-- ═══════════════════ HERO ═══════════════════ -->
 <header class="bg-gradient-primary">
-    <div class="page-header min-vh-75 position-relative" style="background: linear-gradient(135deg,#5e72e4 0%,#825ee4 60%,#11cdef 100%);">
-        <span class="mask bg-gradient-dark opacity-4"></span>
+    <div class="page-header min-vh-75 position-relative" style="<?php echo $heroVideoURL ? '' : 'background: linear-gradient(135deg,#5e72e4 0%,#825ee4 60%,#11cdef 100%);'; ?>">
+
+        <?php if ($heroVideoURL): ?>
+        <!-- Video de fondo -->
+        <video autoplay muted loop playsinline
+               style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
+            <source src="<?php echo $heroVideoURL; ?>" type="<?php echo $heroVideoType; ?>">
+        </video>
+        <?php endif; ?>
+
+        <span class="mask bg-gradient-dark <?php echo $heroVideoURL ? 'opacity-6' : 'opacity-4'; ?>"></span>
         <div class="container pb-lg-9 pb-8 pt-lg-7 postion-relative z-index-2">
             <div class="row justify-content-center text-center">
                 <div class="col-lg-8">

@@ -1,0 +1,7 @@
+# Solo permite servir archivos de video
+<FilesMatch "\.(mp4|webm|ogg)$">
+    Allow from all
+</FilesMatch>
+<FilesMatch "\.php$">
+    Deny from all
+</FilesMatch>
