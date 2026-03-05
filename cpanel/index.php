@@ -100,6 +100,29 @@ if (empty($ministerios)) {
         $ministerios = $resultMinisterios->fetch_all(MYSQLI_ASSOC);
     }
 }
+
+// Video hero (mismo archivo que usa vidaEstudiantil)
+$heroVideoPath = dirname(__DIR__) . '/vidaEstudiantil/assets/videos/hero.mp4';
+$heroVideoWebm = dirname(__DIR__) . '/vidaEstudiantil/assets/videos/hero.webm';
+$heroUrlFile   = dirname(__DIR__) . '/vidaEstudiantil/assets/videos/hero-url.txt';
+$heroVideoURL  = null;
+$heroVideoType = null;
+$heroVideoIsEmbed = false;
+if (file_exists($heroVideoPath)) {
+    $heroVideoURL  = '/cpanel/cpanel_Hithan-main/vidaEstudiantil/assets/videos/hero.mp4';
+    $heroVideoType = 'video/mp4';
+} elseif (file_exists($heroVideoWebm)) {
+    $heroVideoURL  = '/cpanel/cpanel_Hithan-main/vidaEstudiantil/assets/videos/hero.webm';
+    $heroVideoType = 'video/webm';
+} elseif (file_exists($heroUrlFile) && trim(file_get_contents($heroUrlFile)) !== '') {
+    $heroVideoURL  = trim(file_get_contents($heroUrlFile));
+    $heroVideoType = 'url';
+    // Detectar YouTube
+    if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_\-]{11})/', $heroVideoURL, $m)) {
+        $heroVideoURL  = 'https://www.youtube.com/embed/' . $m[1] . '?autoplay=1&mute=1&loop=1&playlist=' . $m[1];
+        $heroVideoIsEmbed = true;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es" data-footer="true" data-override='{"showSettings":false,"attributes": {"placement": "vertical" }}'>
@@ -383,31 +406,145 @@ if (empty($ministerios)) {
 
         <main>
             <div class="container">
+
+                <!-- Acceso Rápido (solo superusuarios) -->
+                <?php if ($temp->usuario_categoria == 1): ?>
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <p class="text-muted text-xs font-weight-bold text-uppercase mb-2">
+                            <i class="fas fa-bolt me-1"></i>Gestión rápida
+                        </p>
+                    </div>
+                    <!-- Tarjeta Video Hero -->
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="<?php echo $temp->siteURL ?>pages/vida-estudiantil/video-hero.php"
+                           class="card shadow-sm border-0 border-radius-xl text-decoration-none h-100 move-on-hover">
+                            <div class="card-body d-flex align-items-center gap-3 py-3">
+                                <div class="icon icon-shape icon-md shadow text-center border-radius-lg flex-shrink-0"
+                                     style="background:linear-gradient(135deg,#5e72e4,#825ee4);">
+                                    <i class="fas fa-film text-white opacity-10"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-secondary mb-0">Vida Estudiantil</p>
+                                    <h6 class="mb-0 font-weight-bolder text-dark">Video Hero</h6>
+                                    <?php if ($heroVideoURL): ?>
+                                        <span class="badge badge-sm bg-gradient-success">Activo</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-sm bg-gradient-secondary">Sin video</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- Tarjeta Banners -->
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="<?php echo $temp->siteURL ?>pages/banners/"
+                           class="card shadow-sm border-0 border-radius-xl text-decoration-none h-100 move-on-hover">
+                            <div class="card-body d-flex align-items-center gap-3 py-3">
+                                <div class="icon icon-shape icon-md shadow text-center border-radius-lg flex-shrink-0"
+                                     style="background:linear-gradient(135deg,#2dce89,#2dcecc);">
+                                    <i class="fas fa-images text-white opacity-10"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-secondary mb-0">Contenido</p>
+                                    <h6 class="mb-0 font-weight-bolder text-dark">Banners</h6>
+                                    <span class="badge badge-sm bg-gradient-info"><?php echo count($banners); ?> activos</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- Tarjeta Clubes -->
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="<?php echo $temp->siteURL ?>pages/clubes/"
+                           class="card shadow-sm border-0 border-radius-xl text-decoration-none h-100 move-on-hover">
+                            <div class="card-body d-flex align-items-center gap-3 py-3">
+                                <div class="icon icon-shape icon-md shadow text-center border-radius-lg flex-shrink-0"
+                                     style="background:linear-gradient(135deg,#fb6340,#fbb140);">
+                                    <i class="fas fa-users text-white opacity-10"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-secondary mb-0">Involúcrate</p>
+                                    <h6 class="mb-0 font-weight-bolder text-dark">Clubes</h6>
+                                    <span class="badge badge-sm bg-gradient-warning"><?php echo count($clubes); ?> destacados</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- Tarjeta Ministerios -->
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="<?php echo $temp->siteURL ?>pages/ministerios/"
+                           class="card shadow-sm border-0 border-radius-xl text-decoration-none h-100 move-on-hover">
+                            <div class="card-body d-flex align-items-center gap-3 py-3">
+                                <div class="icon icon-shape icon-md shadow text-center border-radius-lg flex-shrink-0"
+                                     style="background:linear-gradient(135deg,#11cdef,#1171ef);">
+                                    <i class="fas fa-hands-praying text-white opacity-10"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-secondary mb-0">Fe y Servicio</p>
+                                    <h6 class="mb-0 font-weight-bolder text-dark">Ministerios</h6>
+                                    <span class="badge badge-sm bg-gradient-info"><?php echo count($ministerios); ?> destacados</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Hero Section -->
                 <?php
-                $heroTitulo = $config['hero']['titulo'] ?? 'Vida Estudiantil';
-                $heroSubtitulo = $config['hero']['subtitulo'] ?? 'Descubre los clubes, ministerios y actividades';
-                $heroBotonTexto = $config['hero']['boton_texto'] ?? 'Explorar Clubes';
-                $heroBotonUrl = $config['hero']['boton_url'] ?? 'pages/clubes/';
-                $heroColorInicio = $config['hero']['color_inicio'] ?? '#667eea';
-                $heroColorFin = $config['hero']['color_fin'] ?? '#764ba2';
+                $heroTitulo     = $config['hero']['titulo']       ?? 'Vida Estudiantil';
+                $heroSubtitulo  = $config['hero']['subtitulo']    ?? 'Descubre los clubes, ministerios, deportes y actividades que harán de tu experiencia universitaria algo inolvidable.';
+                $heroBotonTexto = $config['hero']['boton_texto']  ?? 'Explorar Clubes';
+                $heroBotonUrl   = $config['hero']['boton_url']    ?? 'pages/clubes/';
+                $heroColorInicio = $config['hero']['color_inicio'] ?? '#5e72e4';
+                $heroColorFin    = $config['hero']['color_fin']    ?? '#825ee4';
                 $heroImagenFondo = $config['hero']['imagen_fondo'] ?? '';
                 ?>
-                <div class="hero-section">
-                    <div class="hero-background">
-                        <?php if (!empty($heroImagenFondo)): ?>
-                            <img src="<?php echo $temp->siteURL . $heroImagenFondo; ?>" alt="Hero" class="hero-image">
-                        <?php else: ?>
-                            <div class="hero-gradient" style="background: linear-gradient(135deg, <?php echo $heroColorInicio; ?> 0%, <?php echo $heroColorFin; ?> 100%);"></div>
-                        <?php endif; ?>
+                <div class="page-header min-vh-50 position-relative border-radius-xl overflow-hidden mb-4"
+                     style="<?php echo (!$heroVideoURL && empty($heroImagenFondo)) ? 'background:linear-gradient(135deg,' . $heroColorInicio . ' 0%,' . $heroColorFin . ' 100%);' : ''; ?>">
+
+                    <?php if ($heroVideoURL && $heroVideoIsEmbed): ?>
+                    <iframe src="<?php echo htmlspecialchars($heroVideoURL); ?>"
+                            style="position:absolute;inset:0;width:100%;height:100%;border:0;z-index:0;"
+                            allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    <?php elseif ($heroVideoURL && !$heroVideoIsEmbed): ?>
+                    <video autoplay muted loop playsinline
+                           style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
+                        <source src="<?php echo htmlspecialchars($heroVideoURL); ?>" type="<?php echo $heroVideoType !== 'url' ? $heroVideoType : ''; ?>">
+                    </video>
+                    <?php elseif (!empty($heroImagenFondo)): ?>
+                    <img src="<?php echo $temp->siteURL . $heroImagenFondo; ?>"
+                         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" alt="Hero">
+                    <?php endif; ?>
+
+                    <span class="mask bg-gradient-dark <?php echo $heroVideoURL ? 'opacity-6' : 'opacity-4'; ?>"></span>
+
+                    <div class="container py-5 position-relative z-index-2">
+                        <div class="row justify-content-center text-center">
+                            <div class="col-lg-8">
+                                <span class="badge badge-sm bg-white text-primary mb-3 px-3 py-2"
+                                      style="font-size:.75rem;letter-spacing:.08em;">
+                                    Universidad de Monterrey
+                                </span>
+                                <h1 class="text-white font-weight-bolder display-2 mb-3">
+                                    <?php echo htmlspecialchars($heroTitulo); ?>
+                                </h1>
+                                <p class="text-white opacity-8 lead mb-4">
+                                    <?php echo htmlspecialchars($heroSubtitulo); ?>
+                                </p>
+                                <a href="<?php echo $temp->siteURL . $heroBotonUrl; ?>"
+                                   class="btn btn-white btn-lg px-4 font-weight-bolder">
+                                    <i class="fas fa-users me-2"></i><?php echo htmlspecialchars($heroBotonTexto); ?>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="hero-overlay"></div>
-                    <div class="hero-content">
-                        <h1 class="hero-title"><?php echo htmlspecialchars($heroTitulo); ?></h1>
-                        <p class="hero-subtitle"><?php echo htmlspecialchars($heroSubtitulo); ?></p>
-                        <a href="<?php echo $temp->siteURL . $heroBotonUrl; ?>" class="btn hero-btn">
-                            <?php echo htmlspecialchars($heroBotonTexto); ?>
-                        </a>
+
+                    <!-- Wave -->
+                    <div class="position-absolute bottom-0 start-0 end-0">
+                        <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+                            <path fill="#f8f9fa" d="M0,40L80,46C160,53,320,67,480,67C640,67,800,53,960,46C1120,40,1280,40,1360,40L1440,40L1440,80L0,80Z"/>
+                        </svg>
                     </div>
                 </div>
 
@@ -444,105 +581,134 @@ if (empty($ministerios)) {
 
                 <!-- Statistics Section -->
                 <?php if (($config['seccion_stats']['mostrar'] ?? 'S') === 'S' && !empty($estadisticas)): ?>
-                    <div class="stats-section">
-                        <div class="container">
-                            <h2 class="text-center mb-5" style="font-size: 2.5rem; font-weight: 700;">
-                                <?php echo htmlspecialchars($config['seccion_stats']['titulo'] ?? '¿Por qué unirte?'); ?>
-                            </h2>
-                            <div class="row">
-                                <?php foreach ($estadisticas as $stat): ?>
-                                    <div class="col-md-6 col-lg-3 mb-4">
-                                        <div class="stat-card">
-                                            <div class="stat-icon" style="background: <?php echo htmlspecialchars($stat['COLOR']); ?>;">
-                                                <i class="<?php echo htmlspecialchars($stat['ICONO']); ?>"></i>
-                                            </div>
-                                            <div class="stat-number"><?php echo htmlspecialchars($stat['NUMERO']); ?></div>
-                                            <div class="stat-label"><?php echo htmlspecialchars($stat['TITULO']); ?></div>
+                <section class="py-5 bg-gray-100">
+                    <div class="container">
+                        <div class="row g-4 justify-content-center text-center">
+                            <?php foreach ($estadisticas as $stat): ?>
+                            <div class="col-6 col-md-3">
+                                <div class="card shadow-lg border-0 border-radius-xl move-on-hover h-100">
+                                    <div class="card-body p-4">
+                                        <div class="icon icon-shape icon-lg shadow text-center border-radius-xl mb-3"
+                                             style="background:<?php echo htmlspecialchars($stat['COLOR']); ?>;">
+                                            <i class="<?php echo htmlspecialchars($stat['ICONO']); ?> text-white opacity-10 fa-lg"></i>
                                         </div>
+                                        <h2 class="font-weight-bolder"><?php echo htmlspecialchars($stat['NUMERO']); ?></h2>
+                                        <p class="text-secondary mb-0"><?php echo htmlspecialchars($stat['TITULO']); ?></p>
                                     </div>
-                                <?php endforeach; ?>
+                                </div>
                             </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
+                </section>
                 <?php endif; ?>
 
                 <!-- Clubes Section -->
                 <?php if (($config['seccion_clubes']['mostrar'] ?? 'S') === 'S' && !empty($clubes)): ?>
-                    <section class="mb-5">
-                        <div class="section-header">
-                            <h2 class="section-title">
-                                <?php echo htmlspecialchars($config['seccion_clubes']['titulo'] ?? 'Clubes Destacados'); ?>
-                            </h2>
-                            <p class="section-subtitle">
-                                <?php echo htmlspecialchars($config['seccion_clubes']['subtitulo'] ?? 'Únete a alguno de nuestros clubes'); ?>
-                            </p>
+                <section class="py-5 bg-gray-100">
+                    <div class="container">
+                        <div class="row mb-4">
+                            <div class="col-lg-6">
+                                <span class="badge badge-sm bg-gradient-primary mb-2">Comunidad</span>
+                                <h2 class="font-weight-bolder mb-1">
+                                    <?php echo htmlspecialchars($config['seccion_clubes']['titulo'] ?? 'Clubes Destacados'); ?>
+                                </h2>
+                                <p class="text-secondary">
+                                    <?php echo htmlspecialchars($config['seccion_clubes']['subtitulo'] ?? 'Únete a alguno de nuestros clubes y forma parte de una comunidad increíble.'); ?>
+                                </p>
+                            </div>
+                            <div class="col-lg-6 d-flex align-items-end justify-content-lg-end">
+                                <a href="<?php echo $temp->siteURL; ?>pages/clubes/" class="btn btn-outline-primary font-weight-bold">
+                                    Ver todos los clubes <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
                         </div>
-                        <div class="row">
+                        <div class="row g-4">
                             <?php foreach ($clubes as $club): ?>
-                                <div class="col-md-6 col-lg-4 mb-4">
-                                    <div class="club-card">
-                                        <?php if (!empty($club['IMAGEN'])): ?>
-                                            <img src="<?php echo $temp->siteURL . $club['IMAGEN']; ?>" alt="<?php echo htmlspecialchars($club['NOMBRE']); ?>" class="club-card-image">
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="card shadow border-0 border-radius-xl move-on-hover h-100">
+                                    <div class="card-header p-0 border-0 position-relative">
+                                        <?php if (!empty($club['IMAGEN_URL'])): ?>
+                                            <img src="<?php echo $temp->siteURL . htmlspecialchars($club['IMAGEN_URL']); ?>"
+                                                 class="w-100 border-radius-xl border-radius-bottom-none"
+                                                 style="height:200px;object-fit:cover;"
+                                                 alt="<?php echo htmlspecialchars($club['NOMBRE']); ?>">
                                         <?php else: ?>
-                                            <div class="club-card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
-                                                <i class="fa fa-users"></i>
+                                            <div class="bg-gradient-primary border-radius-xl border-radius-bottom-none d-flex align-items-center justify-content-center" style="height:200px;">
+                                                <i class="fas fa-users fa-3x text-white opacity-8"></i>
                                             </div>
                                         <?php endif; ?>
-                                        <div class="club-card-body">
-                                            <h5 class="club-card-title"><?php echo htmlspecialchars($club['NOMBRE']); ?></h5>
-                                            <p class="club-card-description">
-                                                <?php echo htmlspecialchars(substr($club['DESCRIPCION'] ?? '', 0, 100)); ?>
-                                                <?php echo strlen($club['DESCRIPCION'] ?? '') > 100 ? '...' : ''; ?>
-                                            </p>
-                                            <a href="<?php echo $temp->siteURL; ?>pages/clubes/?club=<?php echo $club['ID']; ?>" class="btn club-card-btn">
-                                                Ver más
-                                            </a>
-                                        </div>
+                                    </div>
+                                    <div class="card-body px-4 pb-4 pt-3">
+                                        <h5 class="font-weight-bolder mb-2"><?php echo htmlspecialchars($club['NOMBRE']); ?></h5>
+                                        <p class="text-secondary text-sm mb-3">
+                                            <?php echo htmlspecialchars(mb_substr($club['DESCRIPCION'] ?? '', 0, 110)); ?><?php echo mb_strlen($club['DESCRIPCION'] ?? '') > 110 ? '…' : ''; ?>
+                                        </p>
+                                        <a href="<?php echo $temp->siteURL; ?>pages/clubes/?club=<?php echo $club['ID']; ?>"
+                                           class="btn btn-sm btn-outline-primary font-weight-bold">
+                                            Ver club <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
                                     </div>
                                 </div>
+                            </div>
                             <?php endforeach; ?>
                         </div>
-                        <div class="text-center mt-4">
-                            <a href="<?php echo $temp->siteURL; ?>pages/clubes/" class="btn btn-lg btn-outline-primary" style="border-radius: 50px; padding: 12px 40px;">
-                                Ver todos los clubes
-                            </a>
-                        </div>
-                    </section>
+                    </div>
+                </section>
                 <?php endif; ?>
 
                 <!-- Ministerios Section -->
                 <?php if (($config['seccion_ministerios']['mostrar'] ?? 'S') === 'S' && !empty($ministerios)): ?>
-                    <section class="mb-5">
-                        <div class="section-header">
-                            <h2 class="section-title">
-                                <?php echo htmlspecialchars($config['seccion_ministerios']['titulo'] ?? 'Ministerios'); ?>
-                            </h2>
-                            <p class="section-subtitle">
-                                <?php echo htmlspecialchars($config['seccion_ministerios']['subtitulo'] ?? 'Crece espiritualmente'); ?>
-                            </p>
+                <section class="py-5" style="background:linear-gradient(180deg,#f8f9fa 0%,#fff 100%);">
+                    <div class="container">
+                        <div class="row mb-4">
+                            <div class="col-lg-6">
+                                <span class="badge badge-sm bg-gradient-info mb-2">Fe y Servicio</span>
+                                <h2 class="font-weight-bolder mb-1">
+                                    <?php echo htmlspecialchars($config['seccion_ministerios']['titulo'] ?? 'Ministerios'); ?>
+                                </h2>
+                                <p class="text-secondary">
+                                    <?php echo htmlspecialchars($config['seccion_ministerios']['subtitulo'] ?? 'Crece espiritualmente y sirve a tu comunidad universitaria.'); ?>
+                                </p>
+                            </div>
+                            <div class="col-lg-6 d-flex align-items-end justify-content-lg-end">
+                                <a href="<?php echo $temp->siteURL; ?>pages/ministerios/" class="btn btn-outline-info font-weight-bold">
+                                    Ver todos <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
                         </div>
-                        <div class="row">
+                        <div class="row g-4">
                             <?php foreach ($ministerios as $ministerio): ?>
-                                <div class="col-md-6 col-lg-4 mb-4">
-                                    <div class="ministerio-card">
-                                        <div class="ministerio-icon">
-                                            <i class="fas fa-praying-hands"></i>
-                                        </div>
-                                        <h5 class="ministerio-title"><?php echo htmlspecialchars($ministerio['NOMBRE']); ?></h5>
-                                        <p class="ministerio-description">
-                                            <?php echo htmlspecialchars(substr($ministerio['DESCRIPCION'] ?? '', 0, 120)); ?>
-                                            <?php echo strlen($ministerio['DESCRIPCION'] ?? '') > 120 ? '...' : ''; ?>
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="card shadow border-0 border-radius-xl move-on-hover h-100">
+                                    <div class="card-header p-0 border-0">
+                                        <?php if (!empty($ministerio['IMAGEN_URL'])): ?>
+                                            <img src="<?php echo $temp->siteURL . htmlspecialchars($ministerio['IMAGEN_URL']); ?>"
+                                                 class="w-100 border-radius-xl border-radius-bottom-none"
+                                                 style="height:170px;object-fit:cover;"
+                                                 alt="<?php echo htmlspecialchars($ministerio['NOMBRE']); ?>">
+                                        <?php else: ?>
+                                            <div class="bg-gradient-info border-radius-xl border-radius-bottom-none d-flex align-items-center justify-content-center" style="height:170px;">
+                                                <i class="fas fa-hands-praying fa-3x text-white opacity-8"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="card-body px-4 pb-4 pt-3">
+                                        <h5 class="font-weight-bolder mb-2 text-sm"><?php echo htmlspecialchars($ministerio['NOMBRE']); ?></h5>
+                                        <p class="text-secondary text-xs mb-3">
+                                            <?php echo htmlspecialchars(mb_substr($ministerio['DESCRIPCION'] ?? '', 0, 90)); ?><?php echo mb_strlen($ministerio['DESCRIPCION'] ?? '') > 90 ? '…' : ''; ?>
                                         </p>
+                                        <a href="<?php echo $temp->siteURL; ?>pages/ministerios/?ministerio=<?php echo $ministerio['ID']; ?>"
+                                           class="btn btn-sm btn-outline-info font-weight-bold">
+                                            Ver más <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
                                     </div>
                                 </div>
+                            </div>
                             <?php endforeach; ?>
                         </div>
-                        <div class="text-center mt-4">
-                            <a href="<?php echo $temp->siteURL; ?>pages/ministerios/" class="btn btn-lg btn-outline-primary" style="border-radius: 50px; padding: 12px 40px;">
-                                Ver todos los ministerios
-                            </a>
-                        </div>
-                    </section>
+                    </div>
+                </section>
                 <?php endif; ?>
             </div>
         </main>

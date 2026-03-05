@@ -3,18 +3,28 @@ include('../../assets/php/template.php');
 $temp = new Template('Video Hero — Vida Estudiantil');
 
 if (!$temp->validate_session()) {
-    echo "Sin sesión activa.";
+    header('Location: ' . $temp->siteURL . 'login/');
     exit();
 }
 
-$videoPath = __DIR__ . '/../../vidaEstudiantil/assets/videos/hero.mp4';
-$videoWebm = __DIR__ . '/../../vidaEstudiantil/assets/videos/hero.webm';
+$videoDir  = dirname(__DIR__, 3) . '/vidaEstudiantil/assets/videos/';
+$videoPath = $videoDir . 'hero.mp4';
+$videoWebm = $videoDir . 'hero.webm';
+$urlFile   = $videoDir . 'hero-url.txt';
+
 $tieneVideo = file_exists($videoPath) || file_exists($videoWebm);
+$tieneURL   = file_exists($urlFile) && trim(file_get_contents($urlFile)) !== '';
+$urlGuardada = $tieneURL ? trim(file_get_contents($urlFile)) : '';
 
 $videoActual = null;
 $videoExt    = null;
-if (file_exists($videoPath)) { $videoActual = '/cpanel/cpanel_Hithan-main/vidaEstudiantil/assets/videos/hero.mp4'; $videoExt = 'mp4'; }
-elseif (file_exists($videoWebm)) { $videoActual = '/cpanel/cpanel_Hithan-main/vidaEstudiantil/assets/videos/hero.webm'; $videoExt = 'webm'; }
+if (file_exists($videoPath)) {
+    $videoActual = '/cpanel/cpanel_Hithan-main/vidaEstudiantil/assets/videos/hero.mp4';
+    $videoExt    = 'mp4';
+} elseif (file_exists($videoWebm)) {
+    $videoActual = '/cpanel/cpanel_Hithan-main/vidaEstudiantil/assets/videos/hero.webm';
+    $videoExt    = 'webm';
+}
 ?>
 <!DOCTYPE html>
 <html lang="es" data-footer="true" data-override='{"attributes": {"placement": "vertical"}}'>
@@ -28,7 +38,8 @@ elseif (file_exists($videoWebm)) { $videoActual = '/cpanel/cpanel_Hithan-main/vi
             position: relative;
             max-height: 360px;
         }
-        .video-preview-wrap video {
+        .video-preview-wrap video,
+        .video-preview-wrap iframe {
             width: 100%;
             max-height: 360px;
             object-fit: cover;
@@ -48,6 +59,7 @@ elseif (file_exists($videoWebm)) { $videoActual = '/cpanel/cpanel_Hithan-main/vi
         }
         .drop-zone input[type=file] { display: none; }
         #progressWrap { display: none; }
+        .nav-tabs .nav-link { font-weight: 600; }
     </style>
 </head>
 <body>
@@ -78,33 +90,88 @@ elseif (file_exists($videoWebm)) { $videoActual = '/cpanel/cpanel_Hithan-main/vi
                 <div class="col-lg-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title mb-1">Subir nuevo video</h5>
-                            <p class="text-muted small mb-4">Formatos: <strong>MP4</strong> o <strong>WebM</strong> · Máximo <strong>200 MB</strong><br>
-                                Recomendado: 1920×1080, duración 15–30 s, sin audio.</p>
+                            <h5 class="card-title mb-3">Configurar video</h5>
 
-                            <div class="drop-zone" id="dropZone" onclick="document.getElementById('videoInput').click()">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3 d-block"></i>
-                                <p class="mb-1 fw-semibold">Arrastra aquí tu video o haz clic para seleccionarlo</p>
-                                <p class="text-muted small mb-0">MP4 / WebM · hasta 200 MB</p>
-                                <input type="file" id="videoInput" accept="video/mp4,video/webm,.mp4,.webm">
-                            </div>
+                            <!-- Tabs -->
+                            <ul class="nav nav-tabs mb-4" id="videoTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link <?php echo !$tieneURL ? 'active' : ''; ?>"
+                                            id="tab-upload" data-bs-toggle="tab" data-bs-target="#pane-upload"
+                                            type="button" role="tab">
+                                        <i class="fas fa-upload me-2"></i>Subir archivo
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link <?php echo $tieneURL ? 'active' : ''; ?>"
+                                            id="tab-url" data-bs-toggle="tab" data-bs-target="#pane-url"
+                                            type="button" role="tab">
+                                        <i class="fas fa-link me-2"></i>Usar URL
+                                    </button>
+                                </li>
+                            </ul>
 
-                            <!-- Progreso -->
-                            <div id="progressWrap" class="mt-3">
-                                <div class="d-flex justify-content-between small mb-1">
-                                    <span id="progressLabel">Subiendo…</span>
-                                    <span id="progressPct">0%</span>
+                            <div class="tab-content">
+
+                                <!-- Panel: Subir archivo -->
+                                <div class="tab-pane fade <?php echo !$tieneURL ? 'show active' : ''; ?>"
+                                     id="pane-upload" role="tabpanel">
+                                    <p class="text-muted small mb-4">
+                                        Formatos: <strong>MP4</strong> o <strong>WebM</strong> · Máximo <strong>200 MB</strong><br>
+                                        Recomendado: 1920×1080, duración 15–30 s, sin audio.
+                                    </p>
+
+                                    <div class="drop-zone" id="dropZone" onclick="document.getElementById('videoInput').click()">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3 d-block"></i>
+                                        <p class="mb-1 fw-semibold">Arrastra aquí tu video o haz clic para seleccionarlo</p>
+                                        <p class="text-muted small mb-0">MP4 / WebM · hasta 200 MB</p>
+                                        <input type="file" id="videoInput" accept="video/mp4,video/webm,.mp4,.webm">
+                                    </div>
+
+                                    <!-- Progreso -->
+                                    <div id="progressWrap" class="mt-3">
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span id="progressLabel">Subiendo…</span>
+                                            <span id="progressPct">0%</span>
+                                        </div>
+                                        <div class="progress" style="height:8px;">
+                                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                                                 role="progressbar" style="width:0%"></div>
+                                        </div>
+                                    </div>
+
+                                    <button id="btnSubir" class="btn btn-primary mt-3 w-100" disabled onclick="subirVideo()">
+                                        <i class="fas fa-upload me-2"></i>Subir video
+                                    </button>
                                 </div>
-                                <div class="progress" style="height:8px;">
-                                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
-                                         role="progressbar" style="width:0%"></div>
-                                </div>
-                            </div>
 
-                            <!-- Botón subir -->
-                            <button id="btnSubir" class="btn btn-primary mt-3 w-100" disabled onclick="subirVideo()">
-                                <i class="fas fa-upload me-2"></i>Subir video
-                            </button>
+                                <!-- Panel: URL externa -->
+                                <div class="tab-pane fade <?php echo $tieneURL ? 'show active' : ''; ?>"
+                                     id="pane-url" role="tabpanel">
+                                    <p class="text-muted small mb-3">
+                                        Ingresa la URL directa de un video <strong>MP4 o WebM</strong> (ej: desde tu servidor o CDN).<br>
+                                        También puedes pegar la URL de un video de <strong>YouTube</strong> para incrustarlo.
+                                    </p>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">URL del video</label>
+                                        <input type="url" id="videoURL" class="form-control"
+                                               placeholder="https://ejemplo.com/video.mp4  o  https://youtu.be/..."
+                                               value="<?php echo htmlspecialchars($urlGuardada); ?>">
+                                        <div class="form-text">Pega la URL completa del video.</div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-primary flex-grow-1" onclick="guardarURL()">
+                                            <i class="fas fa-save me-2"></i>Guardar URL
+                                        </button>
+                                        <?php if ($tieneURL): ?>
+                                        <button class="btn btn-outline-danger" onclick="eliminarURL()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div id="urlMsg" class="mt-2"></div>
+                                </div>
+
+                            </div><!-- /tab-content -->
                         </div>
                     </div>
                 </div>
@@ -124,10 +191,37 @@ elseif (file_exists($videoWebm)) { $videoActual = '/cpanel/cpanel_Hithan-main/vi
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span class="badge bg-success">
-                                        <i class="fas fa-check-circle me-1"></i>Video activo (<?php echo strtoupper($videoExt); ?>)
+                                        <i class="fas fa-check-circle me-1"></i>Archivo activo (<?php echo strtoupper($videoExt); ?>)
                                     </span>
                                     <button class="btn btn-sm btn-outline-danger" onclick="eliminarVideo()">
                                         <i class="fas fa-trash me-1"></i>Eliminar
+                                    </button>
+                                </div>
+                                <?php elseif ($tieneURL): ?>
+                                <div class="video-preview-wrap mb-3" id="urlPreviewWrap">
+                                    <?php
+                                    // Detectar si es YouTube
+                                    $ytId = null;
+                                    if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_\-]{11})/', $urlGuardada, $m)) {
+                                        $ytId = $m[1];
+                                    }
+                                    ?>
+                                    <?php if ($ytId): ?>
+                                        <iframe src="https://www.youtube.com/embed/<?php echo $ytId; ?>?autoplay=1&mute=1&loop=1&playlist=<?php echo $ytId; ?>"
+                                                style="width:100%;height:360px;border:0;"
+                                                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                    <?php else: ?>
+                                        <video autoplay muted loop playsinline>
+                                            <source src="<?php echo htmlspecialchars($urlGuardada); ?>">
+                                        </video>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-link me-1"></i>URL activa
+                                    </span>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarURL()">
+                                        <i class="fas fa-trash me-1"></i>Quitar URL
                                     </button>
                                 </div>
                                 <?php else: ?>
@@ -248,8 +342,50 @@ function eliminarVideo() {
         })
         .catch(() => alert('Error de red'));
 }
+
+// ── URL ──
+function guardarURL() {
+    const url = document.getElementById('videoURL').value.trim();
+    if (!url) { alert('Ingresa una URL válida'); return; }
+
+    fetch(API_URL + '?action=save-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ video_url: url })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            document.getElementById('urlMsg').innerHTML =
+                '<div class="alert alert-success py-2 mb-0">URL guardada. Recargando…</div>';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            document.getElementById('urlMsg').innerHTML =
+                '<div class="alert alert-danger py-2 mb-0">Error: ' + res.message + '</div>';
+        }
+    })
+    .catch(() => {
+        document.getElementById('urlMsg').innerHTML =
+            '<div class="alert alert-danger py-2 mb-0">Error de red</div>';
+    });
+}
+
+function eliminarURL() {
+    if (!confirm('¿Quitar la URL del video? El hero volverá al gradiente.')) return;
+
+    fetch(API_URL + '?action=delete-url', { method: 'DELETE' })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) location.reload();
+            else alert('Error: ' + res.message);
+        })
+        .catch(() => alert('Error de red'));
+}
 </script>
 
 <?php $temp->footer() ?>
+<?php $temp->modalSettings() ?>
+<?php $temp->modalSearch() ?>
+<?php $temp->scripts() ?>
 </body>
 </html>

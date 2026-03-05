@@ -9,7 +9,7 @@ include('../cpanel/assets/API/db.php');
 $db = new Conexion();
 
 $ministerios = [];
-$sql = $db->query("SELECT ID, NOMBRE, TIPO, DESCRIPCION, IMAGEN_URL, DIRECTOR_NOMBRE, HORARIO, LUGAR
+$sql = $db->query("SELECT ID, NOMBRE, TIPO, DESCRIPCION, IMAGEN_URL, RESPONSABLE_NOMBRE, HORARIO, LUGAR
     FROM VRE_MINISTERIOS WHERE ACTIVO='S' ORDER BY ORDEN ASC, NOMBRE ASC");
 while ($r = $db->recorrer($sql)) $ministerios[] = $r;
 ?>

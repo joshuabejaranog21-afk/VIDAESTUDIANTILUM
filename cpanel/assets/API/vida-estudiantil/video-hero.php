@@ -22,28 +22,63 @@ if (!$temp->validate_session()) {
     exit;
 }
 
-$videoDir  = __DIR__ . '/../../../vidaEstudiantil/assets/videos/';
+$videoDir  = __DIR__ . '/../../../../vidaEstudiantil/assets/videos/';
 $videoPath = $videoDir . 'hero.mp4';
 $videoURL  = '/cpanel/cpanel_Hithan-main/vidaEstudiantil/assets/videos/hero.mp4';
+$urlFile   = $videoDir . 'hero-url.txt';
+
+$action = $_GET['action'] ?? '';
 
 // ── GET: devuelve si hay video activo ──
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === '') {
+    $urlGuardada = (file_exists($urlFile)) ? trim(file_get_contents($urlFile)) : '';
     echo json_encode([
         'success' => 1,
         'tiene_video' => file_exists($videoPath),
-        'url' => file_exists($videoPath) ? $videoURL : null,
+        'tiene_url'   => $urlGuardada !== '',
+        'url' => file_exists($videoPath) ? $videoURL : ($urlGuardada ?: null),
         'tamaño' => file_exists($videoPath) ? filesize($videoPath) : 0,
     ]);
     exit;
 }
 
-// ── DELETE: elimina el video ──
-if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+// ── DELETE: elimina el video archivo ──
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && $action === '') {
     if (file_exists($videoPath)) {
         unlink($videoPath);
         echo json_encode(['success' => 1, 'message' => 'Video eliminado']);
     } else {
         echo json_encode(['success' => 0, 'message' => 'No hay video para eliminar']);
+    }
+    exit;
+}
+
+// ── POST save-url: guarda URL externa ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'save-url') {
+    $body = json_decode(file_get_contents('php://input'), true);
+    $url  = trim($body['video_url'] ?? '');
+
+    if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
+        // Permitir también URLs de YouTube que pueden no pasar FILTER_VALIDATE_URL estrictamente
+        if ($url === '' || strpos($url, 'http') !== 0) {
+            echo json_encode(['success' => 0, 'message' => 'URL no válida']);
+            exit;
+        }
+    }
+
+    if (!is_dir($videoDir)) mkdir($videoDir, 0755, true);
+    file_put_contents($urlFile, $url);
+    echo json_encode(['success' => 1, 'message' => 'URL guardada']);
+    exit;
+}
+
+// ── DELETE delete-url: elimina URL guardada ──
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && $action === 'delete-url') {
+    if (file_exists($urlFile)) {
+        unlink($urlFile);
+        echo json_encode(['success' => 1, 'message' => 'URL eliminada']);
+    } else {
+        echo json_encode(['success' => 0, 'message' => 'No hay URL guardada']);
     }
     exit;
 }

@@ -13,10 +13,29 @@ $hoy = date('Y-m-d');
 // Video hero
 $heroVideoPath = __DIR__ . '/assets/videos/hero.mp4';
 $heroVideoWebm = __DIR__ . '/assets/videos/hero.webm';
+$heroUrlFile   = __DIR__ . '/assets/videos/hero-url.txt';
 $heroVideoURL  = null;
 $heroVideoType = null;
-if (file_exists($heroVideoPath)) { $heroVideoURL = $portalURL . 'assets/videos/hero.mp4'; $heroVideoType = 'video/mp4'; }
-elseif (file_exists($heroVideoWebm)) { $heroVideoURL = $portalURL . 'assets/videos/hero.webm'; $heroVideoType = 'video/webm'; }
+$heroIsEmbed   = false;
+if (file_exists($heroVideoPath)) {
+    $heroVideoURL  = $portalURL . 'assets/videos/hero.mp4';
+    $heroVideoType = 'video/mp4';
+} elseif (file_exists($heroVideoWebm)) {
+    $heroVideoURL  = $portalURL . 'assets/videos/hero.webm';
+    $heroVideoType = 'video/webm';
+} elseif (file_exists($heroUrlFile)) {
+    $savedUrl = trim(file_get_contents($heroUrlFile));
+    if ($savedUrl !== '') {
+        // Detectar YouTube
+        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_\-]{11})/', $savedUrl, $m)) {
+            $heroVideoURL  = 'https://www.youtube.com/embed/' . $m[1] . '?autoplay=1&mute=1&loop=1&playlist=' . $m[1];
+            $heroIsEmbed   = true;
+        } else {
+            $heroVideoURL  = $savedUrl;
+            $heroVideoType = 'video/mp4';
+        }
+    }
+}
 $anio = date('Y');
 
 // Banners
@@ -58,11 +77,16 @@ while ($r = $db->recorrer($sqlE)) $eventos[] = $r;
 <header class="bg-gradient-primary">
     <div class="page-header min-vh-75 position-relative" style="<?php echo $heroVideoURL ? '' : 'background: linear-gradient(135deg,#5e72e4 0%,#825ee4 60%,#11cdef 100%);'; ?>">
 
-        <?php if ($heroVideoURL): ?>
+        <?php if ($heroVideoURL && $heroIsEmbed): ?>
+        <!-- YouTube embed de fondo -->
+        <iframe src="<?php echo htmlspecialchars($heroVideoURL); ?>"
+                style="position:absolute;inset:0;width:100%;height:100%;border:0;z-index:0;pointer-events:none;"
+                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <?php elseif ($heroVideoURL): ?>
         <!-- Video de fondo -->
         <video autoplay muted loop playsinline
                style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
-            <source src="<?php echo $heroVideoURL; ?>" type="<?php echo $heroVideoType; ?>">
+            <source src="<?php echo htmlspecialchars($heroVideoURL); ?>" type="<?php echo $heroVideoType; ?>">
         </video>
         <?php endif; ?>
 

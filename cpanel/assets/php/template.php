@@ -584,10 +584,21 @@ class Template {
                                 }
                             }
 
+                            // URLs reales de cada módulo (algunos viven en pages/)
+                            $urls_modulos = [
+                                'clubes'          => 'pages/clubes/',
+                                'ministerios'     => 'pages/ministerios/',
+                                'deportes'        => 'pages/deportes/',
+                                'instalaciones'   => 'pages/instalaciones/',
+                                'cocurriculares'  => 'pages/cocurriculares/',
+                                'eventos'         => 'pages/eventos/',
+                                'banners'         => 'pages/banners/',
+                            ];
+
                             // Si tiene acceso a módulos de Involúcrate, crear submenú
                             if($tiene_involucrate) {
                                 echo '<li>';
-                                echo '<a href="#involucrate" data-href="' . $this->siteURL . 'involucrate/">';
+                                echo '<a href="#involucrate" data-href="' . $this->siteURL . 'pages/clubes/">';
                                 echo '<i data-acorn-icon="layout" class="icon" data-acorn-size="18"></i>';
                                 echo '<span class="label">Involúcrate</span>';
                                 echo '</a>';
@@ -595,8 +606,9 @@ class Template {
                                 foreach($items_involucrate as $modulo) {
                                     $slug = $modulo['SLUG'];
                                     $icono = $iconos_modulos[$slug] ?? 'circle';
+                                    $url = $urls_modulos[$slug] ?? ($slug . '/');
                                     echo '<li>';
-                                    echo '<a href="' . $this->siteURL . $slug . '/">';
+                                    echo '<a href="' . $this->siteURL . $url . '">';
                                     echo '<i data-acorn-icon="' . $icono . '" class="icon" data-acorn-size="14"></i>';
                                     echo '<span class="label">' . $modulo['NOMBRE'] . '</span>';
                                     echo '</a>';
@@ -612,6 +624,16 @@ class Template {
                                 echo '<a href="' . $this->siteURL . 'galeria/">';
                                 echo '<i data-acorn-icon="image" class="icon" data-acorn-size="18"></i>';
                                 echo '<span class="label">Galería</span>';
+                                echo '</a>';
+                                echo '</li>';
+                            }
+
+                            // Video Hero - visible para superusuarios y administradores
+                            if($this->usuario_categoria <= 2) {
+                                echo '<li>';
+                                echo '<a href="' . $this->siteURL . 'pages/vida-estudiantil/video-hero.php">';
+                                echo '<i class="fas fa-film icon" data-acorn-size="18"></i>';
+                                echo '<span class="label">Video Hero</span>';
                                 echo '</a>';
                                 echo '</li>';
                             }
