@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /cpanel/cpanel_Hithan-main/
+RewriteBase /vida_estudiantil_Hitha/
 
 # ==============================
 # ARCHIVOS Y DIRECTORIOS REALES

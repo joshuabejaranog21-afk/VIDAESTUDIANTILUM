@@ -1,7 +1,7 @@
 <?php
 class Conexion extends mysqli {
     public function __construct(){
-        parent::__construct('localhost','root','','pruebasumadmin');
+        parent::__construct('localhost','root','root','pruebasumadmin',8889);
         if ($this->connect_errno) {
             die(' Error con la conexión: '.$this->connect_error);
         }
@@ -15,7 +15,7 @@ class Conexion extends mysqli {
     
 }
 class Template {
-    public $siteURL = "/cpanel/cpanel_Hithan-main/cpanel/";
+    public $siteURL = "/vida_estudiantil_Hitha/cpanel/";
     public $titulo;
     public $usuario_id;
     public $usuario_nombre;
@@ -663,6 +663,14 @@ class Template {
                                 echo '</a>';
                                 echo '</li>';
                             }
+
+                            // Home - configuración del sitio público
+                            echo '<li>';
+                            echo '<a href="' . $this->siteURL . 'configuracion/home/">';
+                            echo '<i data-acorn-icon="home" class="icon" data-acorn-size="14"></i>';
+                            echo '<span class="label">Home</span>';
+                            echo '</a>';
+                            echo '</li>';
 
                             echo '</ul>';
                             echo '</li>';

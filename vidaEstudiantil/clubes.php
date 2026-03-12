@@ -1,7 +1,7 @@
 <?php
 $titulo = 'Clubes';
 $paginaActiva = 'clubes';
-$siteURL = '/cpanel/cpanel_Hithan-main/';
+$siteURL = '/vida_estudiantil_Hitha/';
 $portalURL = $siteURL . 'vidaEstudiantil/';
 
 include('assets/php/header.php');

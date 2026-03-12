@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /cpanel/cpanel_Hithan-main/pages/galeria/
+RewriteBase /vida_estudiantil_Hitha/cpanel/pages/galeria/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [L,QSA]

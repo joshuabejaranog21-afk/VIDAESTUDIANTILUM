@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /cpanel/cpanel_Hithan-main/cpanel/
+RewriteBase /vida_estudiantil_Hitha/cpanel/
 
 # ==============================
 # ARCHIVOS Y DIRECTORIOS REALES
@@ -25,12 +25,12 @@ RewriteRule ^ %1 [R=301,L]
 # ==============================
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{DOCUMENT_ROOT}/cpanel/cpanel_Hithan-main/cpanel/pulso/$1.php -f
+RewriteCond %{DOCUMENT_ROOT}/vida_estudiantil_Hitha/cpanel/pulso/$1.php -f
 RewriteRule ^pulso/(.+)$ pulso/$1.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{DOCUMENT_ROOT}/cpanel/cpanel_Hithan-main/cpanel/pages/pulso/$1.php -f
+RewriteCond %{DOCUMENT_ROOT}/vida_estudiantil_Hitha/cpanel/pages/pulso/$1.php -f
 RewriteRule ^pulso/(.+)$ pages/pulso/$1.php [L]
 
 # ==============================
@@ -47,7 +47,7 @@ RewriteRule ^federacion/?$ federacion.php [L]
 # ==============================
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{DOCUMENT_ROOT}/cpanel/cpanel_Hithan-main/cpanel/pages/$1.php -f
+RewriteCond %{DOCUMENT_ROOT}/vida_estudiantil_Hitha/cpanel/pages/$1.php -f
 RewriteRule ^(.+)$ pages/$1.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f

@@ -48,7 +48,52 @@ exit;
     $organizador = isset($_POST['organizador']) ? $db->real_escape_string($_POST['organizador']) : 'OTRO';
     $organizador_nombre = isset($_POST['organizador_nombre']) ? $db->real_escape_string($_POST['organizador_nombre']) : null;
     $categoria = isset($_POST['categoria']) ? $db->real_escape_string($_POST['categoria']) : null;
-    $imagen_principal = isset($_POST['imagen_principal']) ? $db->real_escape_string($_POST['imagen_principal']) : null;
+
+    // Procesar subida de imagen
+    $imagen_principal = null;
+    if (isset($_FILES['imagen_principal']) && $_FILES['imagen_principal']['error'] === UPLOAD_ERR_OK) {
+        $archivo = $_FILES['imagen_principal'];
+
+        // Validar tipo de archivo
+        $tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($archivo['type'], $tiposPermitidos)) {
+            $info['success'] = 0;
+            $info['message'] = 'Formato de imagen no válido. Solo JPG, PNG, GIF, WEBP.';
+            echo json_encode($info);
+            exit();
+        }
+
+        // Validar tamaño (máx 5MB)
+        if ($archivo['size'] > 5 * 1024 * 1024) {
+            $info['success'] = 0;
+            $info['message'] = 'La imagen no puede superar los 5MB';
+            echo json_encode($info);
+            exit();
+        }
+
+        // Generar nombre único
+        $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+        $nombreArchivo = 'evento_' . uniqid() . '_' . time() . '.' . $extension;
+        $directorioDestino = '../../uploads/eventos/';
+
+        // Crear directorio si no existe
+        if (!is_dir($directorioDestino)) {
+            mkdir($directorioDestino, 0755, true);
+        }
+
+        $rutaCompleta = $directorioDestino . $nombreArchivo;
+
+        // Mover archivo
+        if (move_uploaded_file($archivo['tmp_name'], $rutaCompleta)) {
+            $imagen_principal = 'assets/uploads/eventos/' . $nombreArchivo;
+        } else {
+            $info['success'] = 0;
+            $info['message'] = 'Error al subir la imagen';
+            echo json_encode($info);
+            exit();
+        }
+    }
+
     $costo = isset($_POST['costo']) ? $db->real_escape_string($_POST['costo']) : null;
     $cupo_maximo = isset($_POST['cupo_maximo']) ? intval($_POST['cupo_maximo']) : null;
     $registro_requerido = isset($_POST['registro_requerido']) ? $db->real_escape_string($_POST['registro_requerido']) : 'N';

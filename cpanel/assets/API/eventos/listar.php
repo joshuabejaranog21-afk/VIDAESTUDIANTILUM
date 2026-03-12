@@ -72,9 +72,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     if ($sql) {
         $data = [];
         while ($row = $sql->fetch_assoc()) {
-            // Obtener imágenes de la galería centralizada
+            // Obtener imágenes de la galería centralizada (solo si la tabla existe)
             $id_evento = $row['ID'];
-            $imagenes_query = $db->query("
+            $imagenes = [];
+            $imagen_principal = $row['IMAGEN_PRINCIPAL']; // Usar la imagen principal guardada en la tabla
+
+            $imagenes_query = @$db->query("
                 SELECT URL_IMAGEN, TIPO, ORDEN
                 FROM VRE_GALERIA
                 WHERE MODULO = 'eventos'
@@ -82,9 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 AND ACTIVO = 'S'
                 ORDER BY ORDEN ASC
             ");
-
-            $imagenes = [];
-            $imagen_principal = $row['IMAGEN_PRINCIPAL']; // Usar la imagen principal guardada en la tabla
 
             if ($imagenes_query) {
                 while ($img = $imagenes_query->fetch_assoc()) {

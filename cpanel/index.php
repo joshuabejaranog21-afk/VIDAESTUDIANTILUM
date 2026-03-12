@@ -22,6 +22,10 @@ if ($temp->es_director_ministerio()) {
     exit();
 }
 
+// Redirigir a configuración del home directamente
+header('Location: ' . $temp->siteURL . 'configuracion/home/');
+exit();
+
 // ====================================
 // CARGAR CONFIGURACIÓN DEL HOME
 // ====================================

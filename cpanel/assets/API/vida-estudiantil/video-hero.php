@@ -138,7 +138,7 @@ if (file_exists($videoPath)) {
 
 // Si subieron .webm, guardar con su extensión propia
 $destino = $videoDir . 'hero.' . $ext;
-$urlFinal = '/cpanel/cpanel_Hithan-main/vidaEstudiantil/assets/videos/hero.' . $ext;
+$urlFinal = '/vida_estudiantil_Hitha/vidaEstudiantil/assets/videos/hero.' . $ext;
 
 if (!move_uploaded_file($file['tmp_name'], $destino)) {
     echo json_encode(['success' => 0, 'message' => 'Error al guardar el video en el servidor']);

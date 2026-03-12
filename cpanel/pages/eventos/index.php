@@ -149,6 +149,12 @@ $puede_ver_galeria = $temp->tiene_permiso('galeria', 'ver');
                                     <option value="N">Inactivo</option>
                                 </select>
                             </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Imagen Principal del Evento</label>
+                                <input type="file" id="eventoImagenPrincipal" name="imagen_principal" class="form-control" accept="image/*">
+                                <small class="text-muted">Formatos: JPG, PNG, WEBP. Tamaño máximo: 5MB. Recomendado: 1200x600px</small>
+                                <div id="previewImagenPrincipal" class="mt-2"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -175,6 +181,7 @@ $puede_ver_galeria = $temp->tiene_permiso('galeria', 'ver');
         function abrirFormularioCrear() {
             document.getElementById('formEvento').reset();
             document.getElementById('eventoId').value = '';
+            document.getElementById('previewImagenPrincipal').innerHTML = '';
             document.getElementById('modalEventoTitle').textContent = 'Nuevo Evento';
             document.getElementById('btnTexto').textContent = 'Crear Evento';
             modalEvento.show();
@@ -196,6 +203,19 @@ $puede_ver_galeria = $temp->tiene_permiso('galeria', 'ver');
                         document.getElementById('eventoEstado').value = evt.ESTADO;
                         document.getElementById('eventoDestacado').value = evt.DESTACADO;
                         document.getElementById('eventoActivo').value = evt.ACTIVO;
+
+                        // Mostrar imagen actual si existe
+                        const previewDiv = document.getElementById('previewImagenPrincipal');
+                        if (evt.IMAGEN_PRINCIPAL) {
+                            previewDiv.innerHTML = `
+                                <div class="border rounded p-2 d-inline-block">
+                                    <img src="${siteURL}${evt.IMAGEN_PRINCIPAL}" style="max-width:200px;max-height:150px;" class="rounded">
+                                    <p class="text-muted small mb-0 mt-1">Imagen actual (puedes subir una nueva para reemplazarla)</p>
+                                </div>
+                            `;
+                        } else {
+                            previewDiv.innerHTML = '';
+                        }
 
                         document.getElementById('modalEventoTitle').textContent = 'Editar: ' + evt.TITULO;
                         document.getElementById('btnTexto').textContent = 'Actualizar Evento';
@@ -304,7 +324,9 @@ $puede_ver_galeria = $temp->tiene_permiso('galeria', 'ver');
                         tbody.innerHTML = htmlRows;
 
                         $('#tablaEventos').DataTable({
-                            language: {url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'},
+                            language: {
+                                url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                            },
                             order: [[0, 'desc']],
                             pageLength: 25
                         });
@@ -313,6 +335,44 @@ $puede_ver_galeria = $temp->tiene_permiso('galeria', 'ver');
                     }
                 });
         }
+
+        // Preview de imagen al seleccionar
+        document.getElementById('eventoImagenPrincipal')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const previewDiv = document.getElementById('previewImagenPrincipal');
+
+            if (file) {
+                // Validar tamaño (máx 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('La imagen no puede superar los 5MB');
+                    this.value = '';
+                    previewDiv.innerHTML = '';
+                    return;
+                }
+
+                // Validar tipo
+                if (!file.type.startsWith('image/')) {
+                    alert('Solo se permiten archivos de imagen');
+                    this.value = '';
+                    previewDiv.innerHTML = '';
+                    return;
+                }
+
+                // Mostrar preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewDiv.innerHTML = `
+                        <div class="border border-success rounded p-2 d-inline-block">
+                            <img src="${e.target.result}" style="max-width:200px;max-height:150px;" class="rounded">
+                            <p class="text-success small mb-0 mt-1"><i class="fa fa-check-circle"></i> Nueva imagen seleccionada</p>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewDiv.innerHTML = '';
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             modalEvento = new bootstrap.Modal(document.getElementById('modalEvento'));

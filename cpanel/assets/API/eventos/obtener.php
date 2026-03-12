@@ -46,8 +46,9 @@ exit;
     if ($sql && $sql->num_rows > 0) {
         $data = $sql->fetch_assoc();
 
-        // Obtener imágenes de la galería
-        $imagenes_query = $db->query("
+        // Obtener imágenes de la galería (solo si la tabla existe)
+        $imagenes = [];
+        $imagenes_query = @$db->query("
             SELECT ID, URL_IMAGEN, TIPO, ORDEN, TITULO, DESCRIPCION
             FROM VRE_GALERIA
             WHERE MODULO = 'eventos'
@@ -56,28 +57,14 @@ exit;
             ORDER BY TIPO, ORDEN ASC
         ");
 
-        $imagenes = [];
         if ($imagenes_query) {
             while ($img = $imagenes_query->fetch_assoc()) {
                 $imagenes[] = $img;
             }
         }
 
-        // Obtener enlaces multimedia
-        $enlaces_query = $db->query("
-            SELECT *
-            FROM VRE_EVENTOS_ENLACES
-            WHERE ID_EVENTO = $id
-            AND ACTIVO = 'S'
-            ORDER BY ORDEN ASC
-        ");
-
+        // Enlaces multimedia deshabilitados (tabla no existe aún)
         $enlaces = [];
-        if ($enlaces_query) {
-            while ($enlace = $enlaces_query->fetch_assoc()) {
-                $enlaces[] = $enlace;
-            }
-        }
 
         $data['IMAGENES'] = $imagenes;
         $data['TOTAL_IMAGENES'] = count($imagenes);

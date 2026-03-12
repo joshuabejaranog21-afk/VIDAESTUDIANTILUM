@@ -1,7 +1,7 @@
 <?php
 $titulo = 'Inicio';
 $paginaActiva = 'home';
-$siteURL = '/cpanel/cpanel_Hithan-main/';
+$siteURL = '/vida_estudiantil_Hitha/';
 $portalURL = $siteURL . 'vidaEstudiantil/';
 
 include('assets/php/header.php');
@@ -45,31 +45,17 @@ $sqlB = $db->query("SELECT TITULO, DESCRIPCION, IMAGEN_URL, ENLACE FROM VRE_BANN
     AND (FECHA_FIN IS NULL OR FECHA_FIN >= '$hoy') ORDER BY ORDEN ASC LIMIT 5");
 while ($r = $db->recorrer($sqlB)) $banners[] = $r;
 
-// Stats
-$statClubes   = $db->recorrer($db->query("SELECT COUNT(*) c FROM VRE_CLUBES WHERE ACTIVO='S'"))['c'];
-$statMinis    = $db->recorrer($db->query("SELECT COUNT(*) c FROM VRE_MINISTERIOS WHERE ACTIVO='S'"))['c'];
-$statEventos  = $db->recorrer($db->query("SELECT COUNT(*) c FROM VRE_EVENTOS WHERE ACTIVO='S'"))['c'];
-$statDeportes = $db->recorrer($db->query("SELECT COUNT(*) c FROM VRE_DEPORTES WHERE ACTIVO='S'"))['c'];
+// Obtener configuración de eventos
+$cantidadEventos = intval($homeConfig['eventos']['cantidad'] ?? 6);
+$mostrarEventos = ($homeConfig['eventos']['mostrar'] ?? '1') === '1';
+$estiloEventos = $homeConfig['eventos']['estilo'] ?? 'auto';
+$soloDestacados = ($homeConfig['eventos']['solo_destacados'] ?? '0') === '1';
 
-// Clubes (más en la landing)
-$clubes = [];
-$sqlC = $db->query("SELECT ID, NOMBRE, DESCRIPCION, IMAGEN_URL FROM VRE_CLUBES WHERE ACTIVO='S' ORDER BY ORDEN ASC, NOMBRE ASC LIMIT 9");
-while ($r = $db->recorrer($sqlC)) $clubes[] = $r;
-
-// Ministerios (todos)
-$ministerios = [];
-$sqlM = $db->query("SELECT ID, NOMBRE, TIPO, DESCRIPCION, IMAGEN_URL FROM VRE_MINISTERIOS WHERE ACTIVO='S' ORDER BY ORDEN ASC, NOMBRE ASC LIMIT 8");
-while ($r = $db->recorrer($sqlM)) $ministerios[] = $r;
-
-// Deportes
-$deportes = [];
-$sqlD = $db->query("SELECT ID, NOMBRE, DESCRIPCION, IMAGEN_URL FROM VRE_DEPORTES WHERE ACTIVO='S' ORDER BY ORDEN ASC, NOMBRE ASC LIMIT 6");
-while ($r = $db->recorrer($sqlD)) $deportes[] = $r;
-
-// Próximos eventos (más)
+// Próximos eventos
 $eventos = [];
+$whereDestacados = $soloDestacados ? "AND DESTACADO='S'" : "";
 $sqlE = $db->query("SELECT ID, TITULO, DESCRIPCION_CORTA, FECHA_EVENTO, LUGAR, IMAGEN_PRINCIPAL, CATEGORIA
-    FROM VRE_EVENTOS WHERE ACTIVO='S' ORDER BY DESTACADO DESC, FECHA_EVENTO ASC LIMIT 6");
+    FROM VRE_EVENTOS WHERE ACTIVO='S' $whereDestacados ORDER BY DESTACADO DESC, FECHA_EVENTO ASC LIMIT $cantidadEventos");
 while ($r = $db->recorrer($sqlE)) $eventos[] = $r;
 ?>
 
@@ -94,22 +80,42 @@ while ($r = $db->recorrer($sqlE)) $eventos[] = $r;
         <div class="container pb-lg-9 pb-8 pt-lg-7 postion-relative z-index-2">
             <div class="row justify-content-center text-center">
                 <div class="col-lg-8">
-                    <span class="badge badge-sm bg-white text-primary mb-3 px-3 py-2" style="font-size:.75rem;letter-spacing:.08em;">
-                        Universidad de Monterrey
-                    </span>
                     <h1 class="text-white font-weight-bolder display-1 mb-3">
-                        Vida Estudiantil
+                        <?php echo htmlspecialchars($homeConfig['hero']['titulo'] ?? 'Vida Estudiantil'); ?>
                     </h1>
                     <p class="text-white opacity-8 lead mb-4">
-                        Descubre los clubes, ministerios, deportes y actividades que harán de tu experiencia universitaria algo inolvidable.
+                        <?php echo htmlspecialchars($homeConfig['hero']['subtitulo'] ?? 'Descubre los clubes, ministerios, deportes y actividades que harán de tu experiencia universitaria algo inolvidable.'); ?>
                     </p>
+                    <?php
+                    $cantidadBotones = intval($homeConfig['hero']['cantidad_botones'] ?? 2);
+                    $boton1Texto = $homeConfig['hero']['boton1_texto'] ?? 'Ver Eventos';
+                    $boton1Enlace = $homeConfig['hero']['boton1_enlace'] ?? '#eventos';
+                    $boton2Texto = $homeConfig['hero']['boton2_texto'] ?? 'Comunidad';
+                    $boton2Enlace = $homeConfig['hero']['boton2_enlace'] ?? 'clubes';
+
+                    // Construir URLs completas para enlaces relativos
+                    if ($boton1Enlace !== '#eventos' && strpos($boton1Enlace, '#') !== 0 && strpos($boton1Enlace, 'http') !== 0) {
+                        $boton1Enlace = $portalURL . $boton1Enlace;
+                    }
+                    if (strpos($boton2Enlace, '#') !== 0 && strpos($boton2Enlace, 'http') !== 0) {
+                        $boton2Enlace = $portalURL . $boton2Enlace;
+                    }
+                    ?>
                     <div class="d-flex gap-3 justify-content-center flex-wrap">
-                        <a href="#clubes" class="btn btn-white btn-lg px-4 font-weight-bolder">
-                            <i class="fas fa-users me-2"></i>Explorar Clubes
-                        </a>
-                        <a href="#eventos" class="btn btn-outline-white btn-lg px-4 font-weight-bolder">
-                            <i class="fas fa-calendar-alt me-2"></i>Ver Eventos
-                        </a>
+                        <?php if ($cantidadBotones == 1): ?>
+                            <!-- Solo 1 botón grande -->
+                            <a href="<?php echo htmlspecialchars($boton1Enlace); ?>" class="btn btn-white btn-lg px-5 py-3 font-weight-bolder" style="font-size:1.1rem;">
+                                <?php echo htmlspecialchars($boton1Texto); ?>
+                            </a>
+                        <?php else: ?>
+                            <!-- 2 botones -->
+                            <a href="<?php echo htmlspecialchars($boton1Enlace); ?>" class="btn btn-white btn-lg px-4 font-weight-bolder">
+                                <?php echo htmlspecialchars($boton1Texto); ?>
+                            </a>
+                            <a href="<?php echo htmlspecialchars($boton2Enlace); ?>" class="btn btn-outline-white btn-lg px-4 font-weight-bolder">
+                                <?php echo htmlspecialchars($boton2Texto); ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -124,63 +130,6 @@ while ($r = $db->recorrer($sqlE)) $eventos[] = $r;
 </header>
 
 <div class="bg-gray-100">
-
-<!-- ═══════════════════ STATS ═══════════════════ -->
-<section class="py-5">
-    <div class="container">
-        <div class="row g-4 justify-content-center text-center">
-
-            <div class="col-6 col-md-3">
-                <div class="card shadow-lg border-0 border-radius-xl move-on-hover h-100">
-                    <div class="card-body p-4">
-                        <div class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-xl mb-3">
-                            <i class="fas fa-users text-white opacity-10 fa-lg"></i>
-                        </div>
-                        <h2 class="font-weight-bolder text-gradient text-primary"><?php echo $statClubes; ?>+</h2>
-                        <p class="text-secondary mb-0">Clubes Activos</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <div class="card shadow-lg border-0 border-radius-xl move-on-hover h-100">
-                    <div class="card-body p-4">
-                        <div class="icon icon-shape icon-lg bg-gradient-info shadow text-center border-radius-xl mb-3">
-                            <i class="fas fa-hands-praying text-white opacity-10 fa-lg"></i>
-                        </div>
-                        <h2 class="font-weight-bolder text-gradient text-info"><?php echo $statMinis; ?>+</h2>
-                        <p class="text-secondary mb-0">Ministerios</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <div class="card shadow-lg border-0 border-radius-xl move-on-hover h-100">
-                    <div class="card-body p-4">
-                        <div class="icon icon-shape icon-lg bg-gradient-success shadow text-center border-radius-xl mb-3">
-                            <i class="fas fa-calendar-check text-white opacity-10 fa-lg"></i>
-                        </div>
-                        <h2 class="font-weight-bolder text-gradient text-success"><?php echo $statEventos; ?>+</h2>
-                        <p class="text-secondary mb-0">Eventos al Año</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <div class="card shadow-lg border-0 border-radius-xl move-on-hover h-100">
-                    <div class="card-body p-4">
-                        <div class="icon icon-shape icon-lg bg-gradient-warning shadow text-center border-radius-xl mb-3">
-                            <i class="fas fa-running text-white opacity-10 fa-lg"></i>
-                        </div>
-                        <h2 class="font-weight-bolder text-gradient text-warning"><?php echo $statDeportes; ?>+</h2>
-                        <p class="text-secondary mb-0">Deportes</p>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</section>
 
 <!-- ═══════════════════ BANNERS ═══════════════════ -->
 <?php if (!empty($banners)): ?>
@@ -229,231 +178,250 @@ while ($r = $db->recorrer($sqlE)) $eventos[] = $r;
 </section>
 <?php endif; ?>
 
-<!-- ═══════════════════ CLUBES ═══════════════════ -->
-<section id="clubes" class="py-6">
-    <div class="container">
-        <div class="row mb-5">
-            <div class="col-lg-6">
-                <span class="badge badge-sm bg-gradient-primary mb-3">Comunidad</span>
-                <h2 class="font-weight-bolder mb-1">Clubes Estudiantiles</h2>
-                <p class="text-secondary">Únete a un club y sé parte de algo grande. Tenemos más de <?php echo $statClubes; ?> comunidades esperándote.</p>
-            </div>
-            <div class="col-lg-6 d-flex align-items-end justify-content-lg-end">
-                <a href="<?php echo $portalURL; ?>clubes" class="btn btn-outline-primary font-weight-bold">
-                    Ver todos los clubes <i class="fas fa-arrow-right ms-2"></i>
-                </a>
-            </div>
-        </div>
-
-        <?php if (!empty($clubes)): ?>
-        <div class="row g-4">
-            <?php foreach ($clubes as $club): ?>
-            <div class="col-sm-6 col-lg-4">
-                <div class="card shadow border-0 border-radius-xl move-on-hover h-100">
-                    <div class="card-header p-0 border-0 position-relative">
-                        <?php if (!empty($club['IMAGEN_URL'])): ?>
-                            <img src="<?php echo $siteURL . htmlspecialchars($club['IMAGEN_URL']); ?>"
-                                 class="w-100 border-radius-xl border-radius-bottom-none"
-                                 style="height:200px;object-fit:cover;"
-                                 alt="<?php echo htmlspecialchars($club['NOMBRE']); ?>">
-                        <?php else: ?>
-                            <div class="bg-gradient-primary border-radius-xl border-radius-bottom-none d-flex align-items-center justify-content-center" style="height:200px;">
-                                <i class="fas fa-users fa-3x text-white opacity-8"></i>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="card-body px-4 pb-4 pt-3">
-                        <h5 class="font-weight-bolder mb-2"><?php echo htmlspecialchars($club['NOMBRE']); ?></h5>
-                        <p class="text-secondary text-sm mb-3">
-                            <?php echo htmlspecialchars(mb_substr($club['DESCRIPCION'] ?? '', 0, 110)); ?><?php echo mb_strlen($club['DESCRIPCION'] ?? '') > 110 ? '…' : ''; ?>
-                        </p>
-                        <a href="<?php echo $portalURL; ?>club/<?php echo $club['ID']; ?>"
-                           class="btn btn-sm btn-outline-primary font-weight-bold">
-                            Ver club <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <?php else: ?>
-        <div class="text-center py-5 text-secondary">
-            <i class="fas fa-users fa-3x mb-3 opacity-4"></i>
-            <p>No hay clubes disponibles por el momento.</p>
-        </div>
-        <?php endif; ?>
-    </div>
-</section>
-
-<!-- ═══════════════════ MINISTERIOS ═══════════════════ -->
-<section id="ministerios" class="py-6" style="background:linear-gradient(180deg,#fff 0%,#f8f9fa 100%);">
-    <div class="container">
-        <div class="row mb-5">
-            <div class="col-lg-6">
-                <span class="badge badge-sm bg-gradient-info mb-3">Fe y Servicio</span>
-                <h2 class="font-weight-bolder mb-1">Ministerios</h2>
-                <p class="text-secondary">Crece espiritualmente, sirve a tu comunidad y vive tu fe en el campus.</p>
-            </div>
-            <div class="col-lg-6 d-flex align-items-end justify-content-lg-end">
-                <a href="<?php echo $portalURL; ?>ministerios" class="btn btn-outline-info font-weight-bold">
-                    Ver todos <i class="fas fa-arrow-right ms-2"></i>
-                </a>
-            </div>
-        </div>
-
-        <?php if (!empty($ministerios)): ?>
-        <div class="row g-4">
-            <?php foreach ($ministerios as $min): ?>
-            <div class="col-sm-6 col-lg-3">
-                <div class="card shadow border-0 border-radius-xl move-on-hover h-100">
-                    <div class="card-header p-0 border-0 position-relative">
-                        <?php if (!empty($min['IMAGEN_URL'])): ?>
-                            <img src="<?php echo $siteURL . htmlspecialchars($min['IMAGEN_URL']); ?>"
-                                 class="w-100 border-radius-xl border-radius-bottom-none"
-                                 style="height:170px;object-fit:cover;"
-                                 alt="<?php echo htmlspecialchars($min['NOMBRE']); ?>">
-                        <?php else: ?>
-                            <div class="bg-gradient-info border-radius-xl border-radius-bottom-none d-flex align-items-center justify-content-center" style="height:170px;">
-                                <i class="fas fa-hands-praying fa-3x text-white opacity-8"></i>
-                            </div>
-                        <?php endif; ?>
-                        <?php if (!empty($min['TIPO'])): ?>
-                            <span class="badge bg-gradient-info position-absolute bottom-0 start-0 ms-3 mb-3">
-                                <?php echo htmlspecialchars($min['TIPO']); ?>
-                            </span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="card-body px-4 pb-4 pt-3">
-                        <h5 class="font-weight-bolder mb-2 text-sm"><?php echo htmlspecialchars($min['NOMBRE']); ?></h5>
-                        <p class="text-secondary text-xs mb-3">
-                            <?php echo htmlspecialchars(mb_substr($min['DESCRIPCION'] ?? '', 0, 90)); ?><?php echo mb_strlen($min['DESCRIPCION'] ?? '') > 90 ? '…' : ''; ?>
-                        </p>
-                        <a href="<?php echo $portalURL; ?>ministerio/<?php echo $min['ID']; ?>"
-                           class="btn btn-sm btn-outline-info font-weight-bold">
-                            Ver más <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <?php else: ?>
-        <div class="text-center py-5 text-secondary">
-            <i class="fas fa-hands-praying fa-3x mb-3 opacity-4"></i>
-            <p>No hay ministerios disponibles por el momento.</p>
-        </div>
-        <?php endif; ?>
-    </div>
-</section>
-
-<!-- ═══════════════════ DEPORTES ═══════════════════ -->
-<?php if (!empty($deportes)): ?>
-<section id="deportes" class="py-6">
-    <div class="container">
-        <div class="row mb-5">
-            <div class="col-lg-6">
-                <span class="badge badge-sm bg-gradient-warning mb-3">Actividad Física</span>
-                <h2 class="font-weight-bolder mb-1">Deportes</h2>
-                <p class="text-secondary">Mantente activo y compite representando a la universidad.</p>
-            </div>
-        </div>
-        <div class="row g-4">
-            <?php foreach ($deportes as $dep): ?>
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="card shadow-sm border-0 border-radius-xl move-on-hover text-center h-100">
-                    <div class="card-body px-3 py-4">
-                        <?php if (!empty($dep['IMAGEN_URL'])): ?>
-                            <img src="<?php echo $siteURL . htmlspecialchars($dep['IMAGEN_URL']); ?>"
-                                 class="border-radius-xl mb-3" style="width:60px;height:60px;object-fit:cover;"
-                                 alt="<?php echo htmlspecialchars($dep['NOMBRE']); ?>">
-                        <?php else: ?>
-                            <div class="icon icon-shape icon-lg bg-gradient-warning shadow text-center border-radius-xl mb-3 mx-auto">
-                                <i class="fas fa-running text-white opacity-10"></i>
-                            </div>
-                        <?php endif; ?>
-                        <h6 class="font-weight-bolder text-sm mb-1"><?php echo htmlspecialchars($dep['NOMBRE']); ?></h6>
-                        <?php if (!empty($dep['DESCRIPCION'])): ?>
-                            <p class="text-secondary" style="font-size:.72rem;"><?php echo htmlspecialchars(mb_substr($dep['DESCRIPCION'], 0, 60)); ?></p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-<?php endif; ?>
-
 <!-- ═══════════════════ EVENTOS ═══════════════════ -->
-<section id="eventos" class="py-6" style="background:linear-gradient(135deg,#5e72e4 0%,#825ee4 100%);">
+<?php if ($mostrarEventos): ?>
+<?php
+// Determinar el estilo a usar
+$cantEventos = count($eventos);
+$estiloReal = $estiloEventos;
+if ($estiloEventos === 'auto') {
+    if ($cantEventos == 1) $estiloReal = 'hero';
+    elseif ($cantEventos == 2) $estiloReal = 'dual';
+    else $estiloReal = 'grid';
+}
+?>
+<section id="eventos" class="py-6" style="background:#fff;">
     <div class="container">
         <div class="row mb-5">
             <div class="col-lg-6">
-                <span class="badge badge-sm bg-white text-primary mb-3">Agenda</span>
-                <h2 class="font-weight-bolder text-white mb-1">Próximos Eventos</h2>
-                <p class="text-white opacity-8">No te pierdas ninguna actividad del campus.</p>
+                <span class="badge badge-sm bg-gradient-primary text-white mb-3">Agenda</span>
+                <h2 class="font-weight-bolder text-dark mb-1"><?php echo htmlspecialchars($homeConfig['eventos']['titulo'] ?? 'Próximos Eventos'); ?></h2>
+                <p class="text-muted"><?php echo htmlspecialchars($homeConfig['eventos']['subtitulo'] ?? 'No te pierdas ninguna actividad del campus.'); ?></p>
             </div>
             <div class="col-lg-6 d-flex align-items-end justify-content-lg-end">
-                <a href="<?php echo $portalURL; ?>eventos" class="btn btn-white font-weight-bold">
+                <a href="<?php echo $portalURL; ?>eventos" class="btn btn-gradient-primary font-weight-bold">
                     Ver todos los eventos <i class="fas fa-arrow-right ms-2"></i>
                 </a>
             </div>
         </div>
 
         <?php if (!empty($eventos)): ?>
-        <div class="row g-4">
-            <?php foreach ($eventos as $ev): ?>
-            <?php
+
+            <?php if ($estiloReal === 'hero' && $cantEventos >= 1): ?>
+                <!-- Estilo HERO: 1 evento grande horizontal -->
+                <?php
+                $ev = $eventos[0];
                 $fecha = new DateTime($ev['FECHA_EVENTO']);
                 $mes   = strtoupper($fecha->format('M'));
                 $dia   = $fecha->format('d');
                 $year  = $fecha->format('Y');
-            ?>
-            <div class="col-md-6 col-lg-4">
-                <div class="card shadow border-0 border-radius-xl h-100 move-on-hover">
-                    <?php if (!empty($ev['IMAGEN_PRINCIPAL'])): ?>
-                    <div class="card-header p-0 border-0">
-                        <img src="<?php echo $siteURL . htmlspecialchars($ev['IMAGEN_PRINCIPAL']); ?>"
-                             class="w-100 border-radius-xl border-radius-bottom-none"
-                             style="height:160px;object-fit:cover;"
-                             alt="<?php echo htmlspecialchars($ev['TITULO']); ?>">
-                    </div>
-                    <?php endif; ?>
-                    <div class="card-body p-4 d-flex gap-3">
-                        <!-- Fecha -->
-                        <div class="text-center flex-shrink-0">
-                            <div class="bg-gradient-primary border-radius-lg px-2 py-2" style="min-width:52px;">
-                                <span class="d-block text-white text-xs font-weight-bold"><?php echo $mes; ?></span>
-                                <span class="d-block text-white font-weight-bolder" style="font-size:1.6rem;line-height:1;"><?php echo $dia; ?></span>
-                                <span class="d-block text-white opacity-7 text-xs"><?php echo $year; ?></span>
-                            </div>
+                ?>
+                <div class="card shadow border-0 border-radius-xl move-on-hover">
+                    <div class="row g-0">
+                        <?php if (!empty($ev['IMAGEN_PRINCIPAL'])): ?>
+                        <div class="col-md-5">
+                            <img src="<?php echo $siteURL . htmlspecialchars($ev['IMAGEN_PRINCIPAL']); ?>"
+                                 class="w-100 h-100 border-radius-xl border-radius-end-none"
+                                 style="object-fit:cover;min-height:350px;"
+                                 alt="<?php echo htmlspecialchars($ev['TITULO']); ?>">
                         </div>
-                        <!-- Info -->
-                        <div class="flex-grow-1">
-                            <?php if (!empty($ev['CATEGORIA'])): ?>
-                                <span class="badge badge-sm bg-gradient-primary mb-1"><?php echo htmlspecialchars($ev['CATEGORIA']); ?></span>
-                            <?php endif; ?>
-                            <h6 class="font-weight-bolder mb-1"><?php echo htmlspecialchars($ev['TITULO']); ?></h6>
-                            <?php if (!empty($ev['LUGAR'])): ?>
-                                <p class="text-secondary text-xs mb-1">
-                                    <i class="fas fa-map-marker-alt me-1"></i><?php echo htmlspecialchars($ev['LUGAR']); ?>
-                                </p>
-                            <?php endif; ?>
-                            <?php if (!empty($ev['DESCRIPCION_CORTA'])): ?>
-                                <p class="text-secondary text-xs mb-2">
-                                    <?php echo htmlspecialchars(mb_substr($ev['DESCRIPCION_CORTA'], 0, 80)); ?>
-                                </p>
-                            <?php endif; ?>
-                            <a href="<?php echo $portalURL; ?>evento/<?php echo $ev['ID']; ?>"
-                               class="btn btn-sm btn-outline-primary font-weight-bold">
-                                Ver evento
-                            </a>
+                        <?php endif; ?>
+                        <div class="col-md-7">
+                            <div class="card-body p-5">
+                                <div class="d-flex gap-3 mb-3">
+                                    <div class="text-center">
+                                        <div class="bg-gradient-primary border-radius-lg px-3 py-3" style="min-width:70px;">
+                                            <span class="d-block text-white text-sm font-weight-bold"><?php echo $mes; ?></span>
+                                            <span class="d-block text-white font-weight-bolder" style="font-size:2.2rem;line-height:1;"><?php echo $dia; ?></span>
+                                            <span class="d-block text-white opacity-7 text-sm"><?php echo $year; ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <?php if (!empty($ev['CATEGORIA'])): ?>
+                                            <span class="badge badge-lg bg-gradient-primary mb-2"><?php echo htmlspecialchars($ev['CATEGORIA']); ?></span>
+                                        <?php endif; ?>
+                                        <h3 class="font-weight-bolder mb-2"><?php echo htmlspecialchars($ev['TITULO']); ?></h3>
+                                        <?php if (!empty($ev['LUGAR'])): ?>
+                                            <p class="text-secondary mb-2">
+                                                <i class="fas fa-map-marker-alt me-2"></i><?php echo htmlspecialchars($ev['LUGAR']); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <?php if (!empty($ev['DESCRIPCION_CORTA'])): ?>
+                                    <p class="text-secondary mb-4">
+                                        <?php echo htmlspecialchars($ev['DESCRIPCION_CORTA']); ?>
+                                    </p>
+                                <?php endif; ?>
+                                <a href="<?php echo $portalURL; ?>evento/<?php echo $ev['ID']; ?>"
+                                   class="btn btn-primary btn-lg font-weight-bold">
+                                    Ver detalles del evento <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
+
+            <?php elseif ($estiloReal === 'dual'): ?>
+                <!-- Estilo DUAL: 2 eventos lado a lado -->
+                <div class="row g-4">
+                    <?php foreach ($eventos as $ev): ?>
+                    <?php
+                        $fecha = new DateTime($ev['FECHA_EVENTO']);
+                        $mes   = strtoupper($fecha->format('M'));
+                        $dia   = $fecha->format('d');
+                        $year  = $fecha->format('Y');
+                    ?>
+                    <div class="col-md-6">
+                        <div class="card shadow border-0 border-radius-xl h-100 move-on-hover">
+                            <?php if (!empty($ev['IMAGEN_PRINCIPAL'])): ?>
+                            <div class="card-header p-0 border-0">
+                                <img src="<?php echo $siteURL . htmlspecialchars($ev['IMAGEN_PRINCIPAL']); ?>"
+                                     class="w-100 border-radius-xl border-radius-bottom-none"
+                                     style="height:220px;object-fit:cover;"
+                                     alt="<?php echo htmlspecialchars($ev['TITULO']); ?>">
+                            </div>
+                            <?php endif; ?>
+                            <div class="card-body p-4">
+                                <div class="d-flex gap-3 mb-3">
+                                    <div class="text-center flex-shrink-0">
+                                        <div class="bg-gradient-primary border-radius-lg px-2 py-2" style="min-width:60px;">
+                                            <span class="d-block text-white text-xs font-weight-bold"><?php echo $mes; ?></span>
+                                            <span class="d-block text-white font-weight-bolder" style="font-size:1.8rem;line-height:1;"><?php echo $dia; ?></span>
+                                            <span class="d-block text-white opacity-7 text-xs"><?php echo $year; ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <?php if (!empty($ev['CATEGORIA'])): ?>
+                                            <span class="badge badge-sm bg-gradient-primary mb-1"><?php echo htmlspecialchars($ev['CATEGORIA']); ?></span>
+                                        <?php endif; ?>
+                                        <h5 class="font-weight-bolder mb-1"><?php echo htmlspecialchars($ev['TITULO']); ?></h5>
+                                    </div>
+                                </div>
+                                <?php if (!empty($ev['LUGAR'])): ?>
+                                    <p class="text-secondary text-sm mb-2">
+                                        <i class="fas fa-map-marker-alt me-1"></i><?php echo htmlspecialchars($ev['LUGAR']); ?>
+                                    </p>
+                                <?php endif; ?>
+                                <?php if (!empty($ev['DESCRIPCION_CORTA'])): ?>
+                                    <p class="text-secondary text-sm mb-3">
+                                        <?php echo htmlspecialchars(mb_substr($ev['DESCRIPCION_CORTA'], 0, 100)); ?>
+                                    </p>
+                                <?php endif; ?>
+                                <a href="<?php echo $portalURL; ?>evento/<?php echo $ev['ID']; ?>"
+                                   class="btn btn-outline-primary font-weight-bold w-100">
+                                    Ver evento
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+            <?php elseif ($estiloReal === 'lista'): ?>
+                <!-- Estilo LISTA: Scroll horizontal -->
+                <div class="d-flex gap-4 overflow-auto pb-3" style="scroll-snap-type: x mandatory;">
+                    <?php foreach ($eventos as $ev): ?>
+                    <?php
+                        $fecha = new DateTime($ev['FECHA_EVENTO']);
+                        $mes   = strtoupper($fecha->format('M'));
+                        $dia   = $fecha->format('d');
+                        $year  = $fecha->format('Y');
+                    ?>
+                    <div style="min-width:320px;scroll-snap-align: start;">
+                        <div class="card shadow border-0 border-radius-xl h-100 move-on-hover">
+                            <?php if (!empty($ev['IMAGEN_PRINCIPAL'])): ?>
+                            <div class="card-header p-0 border-0">
+                                <img src="<?php echo $siteURL . htmlspecialchars($ev['IMAGEN_PRINCIPAL']); ?>"
+                                     class="w-100 border-radius-xl border-radius-bottom-none"
+                                     style="height:180px;object-fit:cover;"
+                                     alt="<?php echo htmlspecialchars($ev['TITULO']); ?>">
+                            </div>
+                            <?php endif; ?>
+                            <div class="card-body p-4 d-flex gap-3">
+                                <div class="text-center flex-shrink-0">
+                                    <div class="bg-gradient-primary border-radius-lg px-2 py-2" style="min-width:52px;">
+                                        <span class="d-block text-white text-xs font-weight-bold"><?php echo $mes; ?></span>
+                                        <span class="d-block text-white font-weight-bolder" style="font-size:1.6rem;line-height:1;"><?php echo $dia; ?></span>
+                                        <span class="d-block text-white opacity-7 text-xs"><?php echo $year; ?></span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <?php if (!empty($ev['CATEGORIA'])): ?>
+                                        <span class="badge badge-sm bg-gradient-primary mb-1"><?php echo htmlspecialchars($ev['CATEGORIA']); ?></span>
+                                    <?php endif; ?>
+                                    <h6 class="font-weight-bolder mb-1"><?php echo htmlspecialchars($ev['TITULO']); ?></h6>
+                                    <?php if (!empty($ev['LUGAR'])): ?>
+                                        <p class="text-secondary text-xs mb-1">
+                                            <i class="fas fa-map-marker-alt me-1"></i><?php echo htmlspecialchars($ev['LUGAR']); ?>
+                                        </p>
+                                    <?php endif; ?>
+                                    <a href="<?php echo $portalURL; ?>evento/<?php echo $ev['ID']; ?>"
+                                       class="btn btn-sm btn-outline-primary font-weight-bold mt-2">
+                                        Ver evento
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+            <?php else: ?>
+                <!-- Estilo GRID: Grid de 3 columnas (por defecto) -->
+                <div class="row g-4">
+                    <?php foreach ($eventos as $ev): ?>
+                    <?php
+                        $fecha = new DateTime($ev['FECHA_EVENTO']);
+                        $mes   = strtoupper($fecha->format('M'));
+                        $dia   = $fecha->format('d');
+                        $year  = $fecha->format('Y');
+                    ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card shadow border-0 border-radius-xl h-100 move-on-hover">
+                            <?php if (!empty($ev['IMAGEN_PRINCIPAL'])): ?>
+                            <div class="card-header p-0 border-0">
+                                <img src="<?php echo $siteURL . htmlspecialchars($ev['IMAGEN_PRINCIPAL']); ?>"
+                                     class="w-100 border-radius-xl border-radius-bottom-none"
+                                     style="height:160px;object-fit:cover;"
+                                     alt="<?php echo htmlspecialchars($ev['TITULO']); ?>">
+                            </div>
+                            <?php endif; ?>
+                            <div class="card-body p-4 d-flex gap-3">
+                                <div class="text-center flex-shrink-0">
+                                    <div class="bg-gradient-primary border-radius-lg px-2 py-2" style="min-width:52px;">
+                                        <span class="d-block text-white text-xs font-weight-bold"><?php echo $mes; ?></span>
+                                        <span class="d-block text-white font-weight-bolder" style="font-size:1.6rem;line-height:1;"><?php echo $dia; ?></span>
+                                        <span class="d-block text-white opacity-7 text-xs"><?php echo $year; ?></span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <?php if (!empty($ev['CATEGORIA'])): ?>
+                                        <span class="badge badge-sm bg-gradient-primary mb-1"><?php echo htmlspecialchars($ev['CATEGORIA']); ?></span>
+                                    <?php endif; ?>
+                                    <h6 class="font-weight-bolder mb-1"><?php echo htmlspecialchars($ev['TITULO']); ?></h6>
+                                    <?php if (!empty($ev['LUGAR'])): ?>
+                                        <p class="text-secondary text-xs mb-1">
+                                            <i class="fas fa-map-marker-alt me-1"></i><?php echo htmlspecialchars($ev['LUGAR']); ?>
+                                        </p>
+                                    <?php endif; ?>
+                                    <?php if (!empty($ev['DESCRIPCION_CORTA'])): ?>
+                                        <p class="text-secondary text-xs mb-2">
+                                            <?php echo htmlspecialchars(mb_substr($ev['DESCRIPCION_CORTA'], 0, 80)); ?>
+                                        </p>
+                                    <?php endif; ?>
+                                    <a href="<?php echo $portalURL; ?>evento/<?php echo $ev['ID']; ?>"
+                                       class="btn btn-sm btn-outline-primary font-weight-bold">
+                                        Ver evento
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
         <?php else: ?>
         <div class="text-center py-5">
             <i class="fas fa-calendar-alt fa-3x mb-3 text-white opacity-4"></i>
@@ -462,33 +430,7 @@ while ($r = $db->recorrer($sqlE)) $eventos[] = $r;
         <?php endif; ?>
     </div>
 </section>
-
-<!-- ═══════════════════ CTA FINAL ═══════════════════ -->
-<section class="py-6 bg-white">
-    <div class="container">
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-7">
-                <h2 class="font-weight-bolder mb-3">¿Listo para involucrarte?</h2>
-                <p class="text-secondary lead mb-4">
-                    Tu vida universitaria va más allá del salón de clases. Forma parte de la comunidad UM.
-                </p>
-                <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a href="#clubes" class="btn btn-primary btn-lg font-weight-bold px-4">
-                        <i class="fas fa-users me-2"></i>Explorar Clubes
-                    </a>
-                    <a href="#ministerios" class="btn btn-info btn-lg font-weight-bold px-4">
-                        <i class="fas fa-hands-praying me-2"></i>Ver Ministerios
-                    </a>
-                    <?php if (!empty($deportes)): ?>
-                    <a href="#deportes" class="btn btn-warning btn-lg font-weight-bold px-4">
-                        <i class="fas fa-running me-2"></i>Deportes
-                    </a>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<?php endif; ?>
 
 </div><!-- /bg-gray-100 -->
 

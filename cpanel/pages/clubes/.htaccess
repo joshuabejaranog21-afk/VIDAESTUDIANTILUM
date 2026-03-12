@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /cpanel/cpanel_Hithan-main/pages/clubes/
+RewriteBase /vida_estudiantil_Hitha/cpanel/pages/clubes/
 
 # Si el archivo existe, mostrarlo
 RewriteCond %{REQUEST_FILENAME} -f

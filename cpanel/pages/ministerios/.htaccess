@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /cpanel/cpanel_Hithan-main/pages/ministerios/
+    RewriteBase /vida_estudiantil_Hitha/cpanel/pages/ministerios/
     
     # Redirigir URL sin .php a .php
     RewriteCond %{REQUEST_FILENAME} !-f

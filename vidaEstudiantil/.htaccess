@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /cpanel/cpanel_Hithan-main/vidaEstudiantil/
+RewriteBase /vida_estudiantil_Hitha/vidaEstudiantil/
 
 # Archivos y directorios reales - no reescribir
 RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -14,8 +14,13 @@ RewriteRule ^assets/ - [L]
 RewriteRule ^clubes/?$                    clubes.php [L]
 RewriteRule ^ministerios/?$              ministerios.php [L]
 RewriteRule ^eventos/?$                   eventos.php [L]
+RewriteRule ^instalaciones/?$            instalaciones.php [L]
+RewriteRule ^deportes/?$                  deportes.php [L]
+RewriteRule ^anuarios/?$                  anuarios.php [L]
 RewriteRule ^club/([0-9]+)/?$            club.php?id=$1 [L,QSA]
 RewriteRule ^ministerio/([0-9]+)/?$      ministerio.php?id=$1 [L,QSA]
+RewriteRule ^instalacion/([0-9]+)/?$     instalacion.php?id=$1 [L,QSA]
+RewriteRule ^deporte/([0-9]+)/?$         deporte.php?id=$1 [L,QSA]
 
 # Raíz
 RewriteRule ^$                            index.php [L]

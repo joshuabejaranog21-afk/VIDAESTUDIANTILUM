@@ -3,7 +3,7 @@ class Conexion extends mysqli {
     public $mostrarErrores = TRUE;
 
     public function __construct(){
-        parent::__construct('localhost','root','','pruebasumadmin');
+        parent::__construct('localhost','root','root','pruebasumadmin',8889);
 
         if ($this->connect_errno) {
             die("❌ Error de conexión: " . $this->connect_error);

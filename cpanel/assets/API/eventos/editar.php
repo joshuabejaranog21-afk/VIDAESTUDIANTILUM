@@ -49,7 +49,61 @@ exit;
         exit();
     }
 
+    $eventoActual = $check->fetch_assoc();
     $updates = [];
+
+    // Procesar subida de nueva imagen
+    if (isset($_FILES['imagen_principal']) && $_FILES['imagen_principal']['error'] === UPLOAD_ERR_OK) {
+        $archivo = $_FILES['imagen_principal'];
+
+        // Validar tipo de archivo
+        $tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($archivo['type'], $tiposPermitidos)) {
+            $info['success'] = 0;
+            $info['message'] = 'Formato de imagen no válido. Solo JPG, PNG, GIF, WEBP.';
+            echo json_encode($info);
+            exit();
+        }
+
+        // Validar tamaño (máx 5MB)
+        if ($archivo['size'] > 5 * 1024 * 1024) {
+            $info['success'] = 0;
+            $info['message'] = 'La imagen no puede superar los 5MB';
+            echo json_encode($info);
+            exit();
+        }
+
+        // Generar nombre único
+        $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+        $nombreArchivo = 'evento_' . uniqid() . '_' . time() . '.' . $extension;
+        $directorioDestino = '../../uploads/eventos/';
+
+        // Crear directorio si no existe
+        if (!is_dir($directorioDestino)) {
+            mkdir($directorioDestino, 0755, true);
+        }
+
+        $rutaCompleta = $directorioDestino . $nombreArchivo;
+
+        // Mover archivo
+        if (move_uploaded_file($archivo['tmp_name'], $rutaCompleta)) {
+            // Eliminar imagen anterior si existe
+            if (!empty($eventoActual['IMAGEN_PRINCIPAL'])) {
+                $imagenAnterior = '../../' . $eventoActual['IMAGEN_PRINCIPAL'];
+                if (file_exists($imagenAnterior)) {
+                    unlink($imagenAnterior);
+                }
+            }
+
+            $nuevaImagen = 'assets/uploads/eventos/' . $nombreArchivo;
+            $updates[] = "IMAGEN_PRINCIPAL = '$nuevaImagen'";
+        } else {
+            $info['success'] = 0;
+            $info['message'] = 'Error al subir la imagen';
+            echo json_encode($info);
+            exit();
+        }
+    }
 
     if (isset($_POST['titulo'])) {
         $titulo = $db->real_escape_string($_POST['titulo']);
@@ -101,10 +155,7 @@ exit;
         $updates[] = "CATEGORIA = " . ($categoria ? "'$categoria'" : "NULL");
     }
 
-    if (isset($_POST['imagen_principal'])) {
-        $imagen_principal = $db->real_escape_string($_POST['imagen_principal']);
-        $updates[] = "IMAGEN_PRINCIPAL = " . ($imagen_principal ? "'$imagen_principal'" : "NULL");
-    }
+    // Nota: imagen_principal se maneja arriba mediante $_FILES, no aquí
 
     if (isset($_POST['costo'])) {
         $costo = $db->real_escape_string($_POST['costo']);
