@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /vida_estudiantil_Hitha/
+RewriteBase /Vida%20Estudiantil/
 
 # ==============================
 # ARCHIVOS Y DIRECTORIOS REALES
