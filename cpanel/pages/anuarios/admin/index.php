@@ -12,6 +12,7 @@ if (!$temp->validate_session(2)) { // Solo admin o superior
 <head>
     <?php $temp->head() ?>
     <link rel="stylesheet" href="<?php echo $temp->siteURL ?>assets/css/vendor/datatables.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         .card {
             border: none;
@@ -201,7 +202,13 @@ if (!$temp->validate_session(2)) { // Solo admin o superior
                             <label class="form-label">Imagen de Portada</label>
                             <div class="mb-2">
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="portadaOption" id="portadaOptionUrl" value="url" checked>
+                                    <input class="form-check-input" type="radio" name="portadaOption" id="portadaOptionAuto" value="auto" checked>
+                                    <label class="form-check-label" for="portadaOptionAuto">
+                                        Extraer de PDF (1ª página)
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="portadaOption" id="portadaOptionUrl" value="url">
                                     <label class="form-check-label" for="portadaOptionUrl">
                                         Usar URL
                                     </label>
@@ -214,8 +221,23 @@ if (!$temp->validate_session(2)) { // Solo admin o superior
                                 </div>
                             </div>
 
+                            <!-- Auto Extract Option -->
+                            <div id="portadaAutoSection">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="fa fa-magic"></i>
+                                    Se generará automáticamente la portada a partir de la primera página del PDF al guardar.
+                                </small>
+                                <div id="portadaAutoPreview" class="mt-2" style="display:none;">
+                                    <img id="portadaAutoPreviewImg" src="" alt="Preview primera página" class="img-thumbnail" style="max-height: 220px;">
+                                    <div class="small text-success mt-1"><i class="fa fa-check"></i> Primera página extraída correctamente</div>
+                                </div>
+                                <div id="portadaAutoStatus" class="mt-2 small text-muted" style="display:none;">
+                                    <i class="fa fa-spinner fa-spin"></i> <span>Procesando PDF...</span>
+                                </div>
+                            </div>
+
                             <!-- URL Option -->
-                            <div id="portadaUrlSection">
+                            <div id="portadaUrlSection" style="display:none;">
                                 <input type="url" class="form-control" id="form-imagen-portada-url" placeholder="https://...">
                                 <small class="text-muted">URL de la imagen de portada</small>
                             </div>
@@ -409,10 +431,13 @@ if (!$temp->validate_session(2)) { // Solo admin o superior
             $('#form-id').val('');
             $('#form-fotografos').val([]).trigger('change'); // Limpiar select2 de fotógrafos
 
-            // Reset opciones de PDF y Portada
+            // Reset opciones de PDF y Portada (auto por defecto)
             $('#pdfOptionUrl').prop('checked', true).trigger('change');
-            $('#portadaOptionUrl').prop('checked', true).trigger('change');
+            $('#portadaOptionAuto').prop('checked', true).trigger('change');
             $('#portadaPreview').hide();
+            $('#portadaAutoPreview').hide();
+            $('#portadaAutoStatus').hide();
+            portadaAutoBlob = null;
 
             $('#anuarioModal').modal('show');
         }
@@ -438,9 +463,12 @@ if (!$temp->validate_session(2)) { // Solo admin o superior
                         $('#form-pdf-url').val(a.PDF_URL);
                         $('#form-imagen-portada-url').val(a.IMAGEN_PORTADA);
 
-                        // Configurar opciones de portada (siempre URL al editar)
+                        // Configurar opciones de portada (siempre URL al editar para conservar la existente)
                         $('#portadaOptionUrl').prop('checked', true).trigger('change');
                         $('#portadaPreview').hide();
+                        $('#portadaAutoPreview').hide();
+                        $('#portadaAutoStatus').hide();
+                        portadaAutoBlob = null;
 
                         // Cargar fotógrafos seleccionados (convertir string separado por comas en array)
                         if (a.FOTOGRAFOS) {
@@ -555,7 +583,46 @@ if (!$temp->validate_session(2)) { // Solo admin o superior
             const portadaOption = $('input[name="portadaOption"]:checked').val();
             let portadaUrl = '';
 
-            if (portadaOption === 'file') {
+            if (portadaOption === 'auto') {
+                // Si aún no tenemos blob (ej: PDF vía URL o edición), intentar generarlo ahora
+                if (!portadaAutoBlob && pdfUrl) {
+                    $('#saveBtn').text('Extrayendo portada del PDF...');
+                    try {
+                        portadaAutoBlob = await extraerPrimeraPaginaPDF(pdfUrl);
+                    } catch (err) {
+                        console.error('Error extrayendo portada desde URL del PDF:', err);
+                        alert('No se pudo extraer la primera página del PDF: ' + err.message + '\nElige "Subir imagen" o "Usar URL" manualmente.');
+                        $('#saveBtn').prop('disabled', false).text('Guardar');
+                        return;
+                    }
+                }
+
+                if (portadaAutoBlob) {
+                    $('#saveBtn').text('Subiendo portada...');
+                    const portadaFormData = new FormData();
+                    portadaFormData.append('portada', portadaAutoBlob, 'portada_auto_' + Date.now() + '.jpg');
+
+                    try {
+                        const portadaResponse = await fetch(url + 'upload-portada.php', {
+                            method: 'POST',
+                            body: portadaFormData
+                        });
+                        const portadaResult = await portadaResponse.json();
+
+                        if (!portadaResult.success) {
+                            alert('Error al subir la portada auto-extraída: ' + portadaResult.message);
+                            $('#saveBtn').prop('disabled', false).text('Guardar');
+                            return;
+                        }
+                        portadaUrl = portadaResult.url;
+                    } catch (error) {
+                        console.error('Error al subir portada auto:', error);
+                        alert('Error al subir la portada: ' + error.message);
+                        $('#saveBtn').prop('disabled', false).text('Guardar');
+                        return;
+                    }
+                }
+            } else if (portadaOption === 'file') {
                 const portadaFileInput = document.getElementById('form-portada-file');
                 if (portadaFileInput.files && portadaFileInput.files.length > 0) {
                     // Subir imagen de portada
@@ -713,15 +780,78 @@ if (!$temp->validate_session(2)) { // Solo admin o superior
             }
         });
 
-        // Toggle between URL and File upload for Portada
+        // Toggle entre Auto-extraer / URL / Subir imagen para la Portada
         $('input[name="portadaOption"]').on('change', function() {
-            if ($(this).val() === 'url') {
+            const val = $(this).val();
+            $('#portadaAutoSection, #portadaUrlSection, #portadaFileSection').hide();
+            $('#portadaPreview').hide();
+            if (val === 'auto') {
+                $('#portadaAutoSection').show();
+            } else if (val === 'url') {
                 $('#portadaUrlSection').show();
-                $('#portadaFileSection').hide();
-                $('#portadaPreview').hide();
             } else {
-                $('#portadaUrlSection').hide();
                 $('#portadaFileSection').show();
+            }
+        });
+
+        // ── Extracción de primera página del PDF con pdf.js ──
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc =
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        // Blob de la portada auto-extraída (lista para subir)
+        let portadaAutoBlob = null;
+
+        // Renderiza la primera página del PDF a un blob PNG
+        async function extraerPrimeraPaginaPDF(source) {
+            if (typeof pdfjsLib === 'undefined') {
+                throw new Error('pdf.js no cargó. Verifica tu conexión.');
+            }
+            const loadingTask = pdfjsLib.getDocument(source);
+            const pdf = await loadingTask.promise;
+            const page = await pdf.getPage(1);
+
+            // Renderizado a alta resolución (para que la portada se vea bien)
+            const viewport = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext('2d');
+
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+            return new Promise((resolve, reject) => {
+                canvas.toBlob(blob => {
+                    if (blob) resolve(blob);
+                    else reject(new Error('No se pudo generar la imagen'));
+                }, 'image/jpeg', 0.92);
+            });
+        }
+
+        // Cuando el usuario seleccione un PDF, intenta generar la preview automáticamente
+        $('#form-pdf-file').on('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if ($('input[name="portadaOption"]:checked').val() !== 'auto') return;
+
+            const $status = $('#portadaAutoStatus');
+            const $preview = $('#portadaAutoPreview');
+            $preview.hide();
+            $status.show().find('span').text('Extrayendo primera página del PDF...');
+            portadaAutoBlob = null;
+
+            try {
+                const buf = await file.arrayBuffer();
+                const blob = await extraerPrimeraPaginaPDF({ data: new Uint8Array(buf) });
+                portadaAutoBlob = blob;
+                const url = URL.createObjectURL(blob);
+                $('#portadaAutoPreviewImg').attr('src', url);
+                $preview.show();
+                $status.hide();
+            } catch (err) {
+                console.error('Error extrayendo primera página:', err);
+                $status.find('span').text('No se pudo extraer la primera página: ' + err.message);
             }
         });
 
